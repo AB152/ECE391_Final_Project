@@ -144,6 +144,9 @@ do {                                                            \
     str.seg_lim_15_00 = (lim) & 0x0000FFFF;                     \
 } while (0)
 
+/* IMPORTANT */
+// Colon denotes number of bits that the value is
+// Find every exception and interrupt in ISA doc table
 /* An interrupt descriptor entry (goes into the IDT) */
 typedef union idt_desc_t {
     uint32_t val[2];
@@ -159,14 +162,18 @@ typedef union idt_desc_t {
         uint32_t dpl       : 2;
         uint32_t present   : 1;
         uint16_t offset_31_16;
-    } __attribute__ ((packed));
+    } __attribute__ ((packed)); // Already aligned
 } idt_desc_t;
 
+/* IMPORTANT */
+// Put the instances of the above union into this array.
 /* The IDT itself (declared in x86_desc.S */
 extern idt_desc_t idt[NUM_VEC];
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
 
+// str is pointer to element in interrupt table and handler is func *
+// Just call macro
 /* Sets runtime parameters for an IDT entry */
 #define SET_IDT_ENTRY(str, handler)                              \
 do {                                                             \
