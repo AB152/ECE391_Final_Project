@@ -41,7 +41,6 @@ int idt_test(){
 			result = FAIL;
 		}
 	}
-
 	return result;
 }
 

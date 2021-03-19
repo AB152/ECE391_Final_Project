@@ -27,6 +27,13 @@ ldt_desc:
     .long ldt
 
     .align 4
+
+gdt_desc:
+    .word gdt_bottom - gdt - 1      # this represents the size of gdt
+    .long gdt                       # this represents where gdt starts (address)
+
+    .align 4                        # align tss below
+
 tss:
 _tss:
     .rept 104
@@ -101,7 +108,7 @@ idt_desc_ptr:
     .align  16
 idt:
 _idt:
-    .rept NUM_VEC
+    .rept NUM_VEC                   # Fills in 0 NUM_VEC times using rept/endr
     .quad 0
     .endr
 

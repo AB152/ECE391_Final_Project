@@ -25,6 +25,10 @@ _start:
 
 continue:
     # Load the GDT
+    lgdt gdt_desc           # load in six-byte operand that holds base address and limit value for GDT
+
+    # load the IDT
+    lidt idt_desc_ptr     # load in six-byte operand that holds base address and limit value for IDT
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
