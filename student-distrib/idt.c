@@ -15,7 +15,7 @@ void exception_handler(int32_t interrupt_vector){
     switch(interrupt_vector){
         case 0xFFFFFFFF:
             printf(" Divide By Zero Exception");             //print all resepctive exceptions
-            while(1);                                       //wait indefinitely
+            while(1);                                        //wait indefinitely
         case 0xFFFFFFFE:
             printf(" Debug Exception");
             while(1);
