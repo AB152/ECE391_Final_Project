@@ -47,14 +47,14 @@ int idt_test(){
 // MP3.1: Test cases for exceptions
 
 /*
- * test_exceptions_one (MP3.1)
+ * test_divzero_exception (MP3.1)
  *    DESCRIPTION: Tests divide by 0 exception (INT 0)
  *    INPUTS: none
  *    OUTPUTS: none
  *    RETURN VALUES: none
  *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-int test_exceptions_one() {
+int test_divzero_exception() {
 	TEST_HEADER;
 	
 	int i;
@@ -65,14 +65,14 @@ int test_exceptions_one() {
 
 
 /*
- * test_exceptions_two (MP3.1)
+ * test_opcode_exception (MP3.1)
  *    DESCRIPTION: Tests invalid opcode exception (INT 6)
  *    INPUTS: none
  *    OUTPUT: none
  *    RETURN VALUE: none
  * 	  SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-int test_exceptions_two() {
+int test_opcode_exception() {
 	TEST_HEADER;
 
 	// The processor should throw invalid opcode as register CR6 is reserved
@@ -89,7 +89,7 @@ int test_exceptions_two() {
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());						// Checks descriptor offset field for NULL
+	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
-	TEST_OUTPUT("test_exceptions_one", test_exceptions_one());	// Test DIV0 exception
+	TEST_OUTPUT("test_divzero_exception", test_divzero_exception());	// Test DIV0 exception
 }
