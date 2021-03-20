@@ -29,7 +29,11 @@ continue:
 
     # load the IDT (MP3.1)
     lidt idt_desc_ptr     # load in six-byte operand that holds base address and limit value for IDT
-
+    pushal                #save all registers and flags
+    pushf                 
+    call init_IDT
+    popal                 #restore all registers and flags
+    popf 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
 
@@ -52,6 +56,8 @@ keep_going:
     # ebx = address of multiboot info struct
     pushl   %ebx
     pushl   %eax
+
+    call 
 
     # Jump to the C entrypoint to the kernel.
     call    entry
