@@ -9,7 +9,10 @@
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
 #define TEST_OUTPUT(name, result)	\
-	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
+	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL")
+
+static int idt_test(void);
+static int test_divzero_exception(void);
 
 static inline void assertion_failure(){
 	/* Use exception #15 for assertions, otherwise
@@ -76,7 +79,7 @@ int test_opcode_exception() {
 	TEST_HEADER;
 
 	// The processor should throw invalid opcode as register CR6 is reserved
-	asm volatile("mov cr6, eax");
+	asm volatile("mov %eax, %cr6");
 
 	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
 }
@@ -91,5 +94,5 @@ int test_opcode_exception() {
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
-	TEST_OUTPUT("test_divzero_exception", test_divzero_exception());	// Test DIV0 exception
+	TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test DIV0 exception 
 }
