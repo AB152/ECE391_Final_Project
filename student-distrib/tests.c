@@ -18,7 +18,7 @@ static inline void assertion_failure(){
 }
 
 
-/* Checkpoint 1 tests */
+/* Checkpoint 1 (MP3.1) tests */
 
 /* IDT Test - Example
  * 
@@ -47,38 +47,49 @@ int idt_test(){
 // MP3.1: Test cases for exceptions
 
 /*
- * test_exceptions_one
- *    DESCRIPTION: Tests divide by 0 exception
+ * test_exceptions_one (MP3.1)
+ *    DESCRIPTION: Tests divide by 0 exception (INT 0)
  *    INPUTS: none
- *    OUTPUTS: none?
- *    RETURN VALUES: none?
+ *    OUTPUTS: none
+ *    RETURN VALUES: none
  *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-void test_exceptions_one() {
+int test_exceptions_one() {
 	TEST_HEADER;
 	
 	int i;
 	i = 1 / 0;
+
+	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)
 }
 
 
 /*
- * test_exceptions_two
- *    DESCRIPTION: 
- *    INPUTS: 
- *    OUTPUT: 
- *    RETURN VALUE: 
- * 	  SIDE EFFECTS: 
+ * test_exceptions_two (MP3.1)
+ *    DESCRIPTION: Tests invalid opcode exception (INT 6)
+ *    INPUTS: none
+ *    OUTPUT: none
+ *    RETURN VALUE: none
+ * 	  SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
+int test_exceptions_two() {
+	TEST_HEADER;
 
-/* Checkpoint 2 tests */
-/* Checkpoint 3 tests */
-/* Checkpoint 4 tests */
-/* Checkpoint 5 tests */
+	// The processor should throw invalid opcode as register CR6 is reserved
+	asm volatile("mov cr6, eax");
+
+	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
+}
+
+/* Checkpoint 2 (MP3.2) tests */
+/* Checkpoint 3 (MP3.3) tests */
+/* Checkpoint 4 (MP3.4) tests */
+/* Checkpoint 5 (MP3.5) tests */
 
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("idt_test", idt_test());						// Checks descriptor offset field for NULL
 	// launch your tests here
+	TEST_OUTPUT("test_exceptions_one", test_exceptions_one());	// Test DIV0 exception
 }

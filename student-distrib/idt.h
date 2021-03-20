@@ -1,4 +1,4 @@
-/* idt.h - Defines for necessary functions and vars for IDT initialization
+/* idt.h (MP3.1) - Defines for necessary functions and vars for IDT initialization
  *         Note that the ifndef-endif wrapping combined with the define is equivalent to a pragma once
  * vim:ts=4 noexpandtab
  */

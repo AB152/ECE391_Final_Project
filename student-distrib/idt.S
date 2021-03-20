@@ -1,4 +1,4 @@
-/* idt.S: Contains assembly code that handles interrupts */
+/* idt.S (MP3.1) : Contains assembly code that handles interrupts */
 # vim:ts=4 noexpandtab
 
 #include "idt.h"

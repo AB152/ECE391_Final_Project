@@ -24,10 +24,10 @@ _start:
     jmp     continue
 
 continue:
-    # Load the GDT
+    # Load the GDT (MP3.1)
     lgdt gdt_desc           # load in six-byte operand that holds base address and limit value for GDT
 
-    # load the IDT
+    # load the IDT (MP3.1)
     lidt idt_desc_ptr     # load in six-byte operand that holds base address and limit value for IDT
 
     # Load CS with the new descriptor value

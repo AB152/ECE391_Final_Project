@@ -1,11 +1,11 @@
-/* idt.c - All IDT related functions
+/* idt.c (MP3.1) - All IDT related functions
  * vim:ts=4 noexpandtab
  */
 
 #include "idt.h"
 #include "x86_desc.h"
 
-// Handles interrupt (MP3.1: print error message and other relevant items like regs)
+// Handles interrupt (print error message and other relevant items like regs)
 void exception_handler(uint32_t interrupt_vector){
     switch(){
         case :
@@ -33,7 +33,10 @@ void init_IDT(){
         // Advance to vector 0x20 as we won't fill in vectors 0x14 thru 0x1F (see 3.1 hints)
         if(i == 0x14)
             i == 0x20;
-        
+        // Skip vector 15 as it's reserved by Intel (tests.c says use it for assertions?)
+        else if(i == 15)
+            continue;
+
         idt_desc_t next_entry;                  // Next idt entry that we are initializing
         next_entry.seg_selector = KERNEL_CS;    // initialize to kernel's code segment descriptor
         next_entry.reserved4 = 0x0;             // interrupt gate reserved bits are 0 1 1 1 0 for 32 bit size
