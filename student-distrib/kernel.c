@@ -1,4 +1,4 @@
-/* kernel.c - the C part of the kernel
+ /* kernel.c - the C part of the kernel
  * vim:ts=4 noexpandtab
  */
 
@@ -8,6 +8,7 @@
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
+#include "idt.h"
 
 #define RUN_TESTS
 

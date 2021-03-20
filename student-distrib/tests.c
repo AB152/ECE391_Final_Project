@@ -44,7 +44,32 @@ int idt_test(){
 	return result;
 }
 
-// add more tests here
+// MP3.1: Test cases for exceptions
+
+/*
+ * test_exceptions_one
+ *    DESCRIPTION: Tests divide by 0 exception
+ *    INPUTS: none
+ *    OUTPUTS: none?
+ *    RETURN VALUES: none?
+ *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
+ */
+void test_exceptions_one() {
+	TEST_HEADER;
+	
+	int i;
+	i = 1 / 0;
+}
+
+
+/*
+ * test_exceptions_two
+ *    DESCRIPTION: 
+ *    INPUTS: 
+ *    OUTPUT: 
+ *    RETURN VALUE: 
+ * 	  SIDE EFFECTS: 
+ */
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
