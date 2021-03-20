@@ -6,7 +6,10 @@
 #ifndef _IDT_H
 #define _IDT_H
 
-extern void exception_handler(uint32_t interrupt_vector);
+#include "lib.h"
+#include "x86_desc.h"
+
+extern void exception_handler(int32_t interrupt_vector);
 
 /*
 * implement assembly linkage for all relevant exceptions 

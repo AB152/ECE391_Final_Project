@@ -3,7 +3,8 @@
  */
 
 #include "idt.h"
-#include "x86_desc.h"
+
+#include "lib.h"
 
 // Handles interrupt (print error message and other relevant items like regs)
 // Is stack trace required?
@@ -11,13 +12,13 @@ void exception_handler(int32_t interrupt_vector){
     switch(interrupt_vector){
         case 0xFFFFFFFF:
             printf("Divide By Zero Exception");             //print all resepctive exceptions
-            while(1);                                       //wait indefinitely
+            break;                                       //wait indefinitely
         case 0xFFFFFFFE:
             printf("Debug Exception");
-            while(1);
+            break;
         case 0xFFFFFFFD:
             printf("Non-masking Interrupt Exception");
-            while(1);
+            break;
         case 0xFFFFFFFC:
             printf("Breakpoint Exception");
             while(1);
@@ -65,32 +66,14 @@ void exception_handler(int32_t interrupt_vector){
             while(1);
         case 0xFFFFFFEC:
             printf("SIMD Floating-Point Exception");
-            while(1);
+            break;
     }
 }
 
 /*
 * enter all relevant exceptions into IDT table
 */
-SET_IDT_ENTRY(idt[0],divide_by_zero);
-SET_IDT_ENTRY(idt[1],debug);
-SET_IDT_ENTRY(idt[2],nm_interrupt);
-SET_IDT_ENTRY(idt[3],breakpoint);
-SET_IDT_ENTRY(idt[4],overflow);
-SET_IDT_ENTRY(idt[5],br_exceeded);
-SET_IDT_ENTRY(idt[6],inv_opcode);
-SET_IDT_ENTRY(idt[7],device_na);
-SET_IDT_ENTRY(idt[8],double_fault);
-SET_IDT_ENTRY(idt[9],cp_seg_overrun);
-SET_IDT_ENTRY(idt[10],inv_tss);
-SET_IDT_ENTRY(idt[11],seg_not_present);
-SET_IDT_ENTRY(idt[12],stack_fault);
-SET_IDT_ENTRY(idt[13],gen_protection);
-SET_IDT_ENTRY(idt[14],page_fault);
-SET_IDT_ENTRY(idt[16],fpu_floating_point);
-SET_IDT_ENTRY(idt[17],alignment_check);
-SET_IDT_ENTRY(idt[18],machine_check);
-SET_IDT_ENTRY(idt[19],simd_floating_point);
+
 
 // Refer to OSDEV for paging: flush, map page directory to memory correctly
 // Create 2-3 tests for this checkpoint
@@ -112,7 +95,7 @@ void init_IDT(){
         
         // Advance to vector 0x20 as we won't fill in vectors 0x14 thru 0x1F (see 3.1 hints)
         if(i == 0x14)
-            i == 0x20;
+            i = 0x20;
         // Skip vector 15 as it's reserved by Intel (tests.c says use it for assertions?)
         else if(i == 15)
             continue;
@@ -139,4 +122,23 @@ void init_IDT(){
         // Populate IDT vector with new entry
         idt[i] = next_entry;
     }
+    SET_IDT_ENTRY(idt[0],divide_by_zero);
+    SET_IDT_ENTRY(idt[1],debug);
+    SET_IDT_ENTRY(idt[2],nm_interrupt);
+    SET_IDT_ENTRY(idt[3],breakpoint);
+    SET_IDT_ENTRY(idt[4],overflow);
+    SET_IDT_ENTRY(idt[5],br_exceeded);
+    SET_IDT_ENTRY(idt[6],inv_opcode);
+    SET_IDT_ENTRY(idt[7],device_na);
+    SET_IDT_ENTRY(idt[8],double_fault);
+    SET_IDT_ENTRY(idt[9],cp_seg_overrun);
+    SET_IDT_ENTRY(idt[10],inv_tss);
+    SET_IDT_ENTRY(idt[11],seg_not_present);
+    SET_IDT_ENTRY(idt[12],stack_fault);
+    SET_IDT_ENTRY(idt[13],gen_protection);
+    SET_IDT_ENTRY(idt[14],page_fault);
+    SET_IDT_ENTRY(idt[16],fpu_floating_point);
+    SET_IDT_ENTRY(idt[17],alignment_check);
+    SET_IDT_ENTRY(idt[18],machine_check);
+    SET_IDT_ENTRY(idt[19],simd_floating_point);
 }

@@ -57,7 +57,6 @@ keep_going:
     pushl   %ebx
     pushl   %eax
 
-    call 
 
     # Jump to the C entrypoint to the kernel.
     call    entry
