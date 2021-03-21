@@ -11,4 +11,8 @@
 #define REGISTER_B		    0x0B
 #define REGISTER_C		    0x0C
 
+volatile int RTC_int; // to keep track of RTC interupts
+
 void init_RTC();
+
+void RTC_interupt();

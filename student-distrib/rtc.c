@@ -12,7 +12,6 @@
  *    NOTES: See OSDev links in .h file to understand macros
  */ 
 
-
 void init_RTC(){
 
 disable_ints();                     // important that no interrupts happen (perform a CLI)
@@ -24,3 +23,17 @@ enable_ints();                      // (perform an STI) and reenable NMI if you 
 
 }
 
+/*
+ * RTC_interupt
+ *    DESCRIPTION: RTC register C needs to be read, so interupts will happen again
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURNS: none
+ *    SIDE EFFECTS: set RTC_int to 1
+ *    NOTES: See OSDev links in .h file to understand macros
+ */ 
+void RTC_interupt(){
+    outb(RTC_PORT, REGISTER_C);	    // select register C
+    inb(CMOS_PORT);		            // just throw away contents
+    RTC_int = 1;                    // RTC interupt has occured
+}
