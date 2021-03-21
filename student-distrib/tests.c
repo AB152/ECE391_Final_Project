@@ -9,7 +9,10 @@
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
 #define TEST_OUTPUT(name, result)	\
-	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
+	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL")
+
+static int idt_test(void);
+static int test_divzero_exception(void);
 
 static inline void assertion_failure(){
 	/* Use exception #15 for assertions, otherwise
@@ -18,7 +21,7 @@ static inline void assertion_failure(){
 }
 
 
-/* Checkpoint 1 tests */
+/* Checkpoint 1 (MP3.1) tests */
 
 /* IDT Test - Example
  * 
@@ -44,16 +47,52 @@ int idt_test(){
 	return result;
 }
 
-// add more tests here
+// MP3.1: Test cases for exceptions
 
-/* Checkpoint 2 tests */
-/* Checkpoint 3 tests */
-/* Checkpoint 4 tests */
-/* Checkpoint 5 tests */
+/*
+ * test_divzero_exception (MP3.1)
+ *    DESCRIPTION: Tests divide by 0 exception (INT 0)
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURN VALUES: none
+ *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
+ */
+int test_divzero_exception() {
+	TEST_HEADER;
+	
+	int i;
+	i = 1 / 0;
+
+	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)
+}
+
+
+/*
+ * test_opcode_exception (MP3.1)
+ *    DESCRIPTION: Tests invalid opcode exception (INT 6)
+ *    INPUTS: none
+ *    OUTPUT: none
+ *    RETURN VALUE: none
+ * 	  SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
+ */
+int test_opcode_exception() {
+	TEST_HEADER;
+
+	// The processor should throw invalid opcode as register CR6 is reserved
+	asm volatile("mov %eax, %cr6");
+
+	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
+}
+
+/* Checkpoint 2 (MP3.2) tests */
+/* Checkpoint 3 (MP3.3) tests */
+/* Checkpoint 4 (MP3.4) tests */
+/* Checkpoint 5 (MP3.5) tests */
 
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
+	TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test DIV0 exception 
 }
