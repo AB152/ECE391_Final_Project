@@ -12,10 +12,14 @@
 
 #include "types.h"
 
-void exception_handler(int32_t interrupt_vector);
+#define KEYBOARD_PORT 0x60
 
 
-void init_IDT();
+extern void init_IDT();
+
+extern void exception_handler(int32_t interrupt_vector);
+
+extern void keyboard_handler();
 
 
 //#endif /* ASM */

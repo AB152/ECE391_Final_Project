@@ -27,7 +27,8 @@ extern void page_fault();           //exception 14
 extern void fpu_floating_point();   //exception 16 (exception 15 is reserved by Intel)
 extern void alignment_check();      //exception 17
 extern void machine_check();        //exception 18
-extern void simd_floating_point();  //exception 19
+extern void simd_floating_point();  //exception 19]
+extern void keyboard_processor();   //process keyboard interrupt
 
 #endif /* ASM */
 #endif /* _IDT_EX_HANDLER_H */
