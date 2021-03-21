@@ -8,13 +8,13 @@
 
 #include "types.h"
 
-/* Ports that each PIC sits on */
+/* Ports that each PIC sits on (These point to the CMD port, add 1 to get the DATA port) */
 #define MASTER_8259_PORT    0x20
 #define SLAVE_8259_PORT     0xA0
 
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning
- * of each word */
+ * of each word (as well as Lecture 10) */
 #define ICW1                0x11
 #define ICW2_MASTER         0x20
 #define ICW2_SLAVE          0x28

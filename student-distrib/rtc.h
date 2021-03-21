@@ -1,6 +1,8 @@
 
 // https://wiki.osdev.org/RTC#Setting_the_Registers
 // https://wiki.osdev.org/RTC#Turning_on_IRQ_8
+#include "lib.h"
+
 
 #define RTC_PORT		    0x70
 #define CMOS_PORT		    0x71
