@@ -16,19 +16,10 @@ void i8259_init(void) {
     // Clear interrupt flag so no interrupts occur during init
     //cli();    //commented out by Gloria for testing
 
-    // Preserve original PIC masks
-    master_mask = (uint8_t)inb(MASTER_8259_PORT + 1);
-    slave_mask = (uint8_t)inb(SLAVE_8259_PORT + 1);
-
-    // MAGIC NUMBERS and waiting using outb_p?
-
-    outb(0xFF, MASTER_8259_PORT + 1);           // Mask all of 8259A-1
-    outb(0xFF, SLAVE_8259_PORT + 1);            // Mask all of 8259A-2
 
     outb(ICW1, MASTER_8259_PORT);               // ICW1: select 8259A-1 init
     outb(ICW2_MASTER, MASTER_8259_PORT + 1);    // ICW2: 8259A-1 IR0-7 mapped to 0x20-0x27
     outb(ICW3_MASTER, MASTER_8259_PORT + 1);    // 8259A-1 has slave on IR2
-
     outb(ICW4, MASTER_8259_PORT + 1);           // master expects normal EOI
 
     outb(ICW1, SLAVE_8259_PORT);                // ICW1: select 8259A-2 init
@@ -36,10 +27,8 @@ void i8259_init(void) {
     outb(ICW3_SLAVE, SLAVE_8259_PORT + 1);      // 8259A-2 is slave on master's IR2
     outb(ICW4, SLAVE_8259_PORT + 1);            // (slave's support for AEOI in flat more is to be investigated)
 
-    // Enable port of master that slave is connected to 
-    outb(master_mask, MASTER_8259_PORT + 1);    // restore master IRQ mask
-    outb(slave_mask, SLAVE_8259_PORT + 1);      // restore slave IRQ mask
-
+    outb(0xFF, MASTER_8259_PORT + 1);           // Mask all of 8259A-1
+    outb(0xFF, SLAVE_8259_PORT + 1);            // Mask all of 8259A-2
 
     enable_irq(2);                              //enable IRQ2 (slave ports), added by Gloria
     // Initialization complete: re-allow interrupts
@@ -50,7 +39,11 @@ void i8259_init(void) {
 void enable_irq(uint32_t irq_num) {
     uint8_t port;
     uint8_t value;
- 
+    
+    if(irq_num<0 || irq_num>15){
+        return;
+    }
+
     if(irq_num < 8) {                           //working with master PIC when IRQ<8
         port = MASTER_8259_PORT + 1;
 
@@ -68,6 +61,10 @@ void disable_irq(uint32_t irq_num) {
     uint8_t port;
     uint8_t value;
  
+    if(irq_num<0 || irq_num>15){
+        return;
+    }
+
     if(irq_num < 8) {                           //working with master PIC when IRQ<8
         port = MASTER_8259_PORT + 1;        
     } 
@@ -81,6 +78,9 @@ void disable_irq(uint32_t irq_num) {
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
+    if(irq_num<0 || irq_num>15){
+        return;
+    }
 	if(irq_num >= 8){
 		outb(EOI|(irq_num-8), SLAVE_8259_PORT);     //missed comment above EOI macro, found by Akshay
         outb(EOI+2, MASTER_8259_PORT);              //adding on IRQ slave port to EOI 

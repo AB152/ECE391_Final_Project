@@ -48,8 +48,8 @@ void init_IDT(){
 
         idt_desc_t next_entry;                  // Next idt entry that we are initializing
         next_entry.seg_selector = KERNEL_CS;    // initialize to kernel's code segment descriptor
-        next_entry.reserved4 = 0x0;             // interrupt gate reserved bits are 0 1 1 1 0 for 32 bit size
-        next_entry.reserved3 = 0x1;
+        next_entry.reserved4 = 0x0;             // interrupt gate reserved bits are 0 0 1 1 0 for 32 bit size
+        next_entry.reserved3 = 0x0;
         next_entry.reserved2 = 0x1;
         next_entry.reserved1 = 0x1;
         next_entry.size = 0x1;                  // size always 32-bits
@@ -180,7 +180,7 @@ void keyboard_handler(){
     outb((char) num_letters_ascii[scan_code], 0x60);
     //char* key_pressed=num_letters_ascii[scane_code];
     //printf(key_pressed);
-    send_eoi(0x01);
+    send_eoi(0x01);         //IRQ number for keyboard
 }
 
 /*
@@ -193,14 +193,15 @@ void keyboard_handler(){
  *    NOTES: See OSDev links in .h file to understand macros
  */ 
 void RTC_interrupt(){
-    cli();
+    //cli();
     // Possible space to put test_interrupts() function.
     outb(REGISTER_C, RTC_PORT);	    // select register C
     inb(CMOS_PORT);		            // just throw away contents
     RTC_int = 1;                    // RTC interupt has occured
+    
+    send_eoi(RTC_IRQ);
     test_interrupts();
-    send_eoi(RTC_PORT);
-    sti();
+    //sti();
 }
 
 

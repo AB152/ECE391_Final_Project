@@ -181,16 +181,12 @@ exception_processor:            #passes interrupt vector into exception_handler
 
 keyboard_processor:             #once keyboard interrupt occurs, call keyboard handler
     pushal 
-    pushfl 
     call keyboard_handler
-    popfl 
     popal 
     iret 
 
 RTC_processor:
     pushal 
-    pushfl 
     call RTC_interrupt
-    popfl 
     popal 
     iret 

@@ -57,14 +57,14 @@ int idt_test(){
  *    RETURN VALUES: none
  *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-int test_divzero_exception() {
-	TEST_HEADER;
+// int test_divzero_exception() {
+// 	TEST_HEADER;
 	
-	int i;
-	i = 1 / 0;
+// 	int i;
+// 	i = 1 / 0;
 
-	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)
-}
+// 	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)
+// }
 
 
 /*
@@ -75,14 +75,14 @@ int test_divzero_exception() {
  *    RETURN VALUE: none
  * 	  SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-int test_opcode_exception() {
-	TEST_HEADER;
+// int test_opcode_exception() {
+// 	TEST_HEADER;
 
-	// The processor should throw invalid opcode as register CR6 is reserved
-	asm volatile("mov %eax, %cr6");
+// 	// The processor should throw invalid opcode as register CR6 is reserved
+// 	asm volatile("mov %eax, %cr6");
 
-	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
-}
+// 	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
+// }
 
 /* Checkpoint 2 (MP3.2) tests */
 /* Checkpoint 3 (MP3.3) tests */
@@ -94,5 +94,6 @@ int test_opcode_exception() {
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
-	TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test DIV0 exception 
+	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 
+	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());
 }
