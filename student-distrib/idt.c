@@ -9,7 +9,11 @@
 
 #include "keyboard.h"
 
+#include "rtc.h"
+
 #include "i8259.h"
+
+#include "lib.h"
 
 
 
@@ -89,6 +93,7 @@ void init_IDT(){
     SET_IDT_ENTRY(idt[19], &simd_floating_point);       //exception 19
 
     SET_IDT_ENTRY(idt[21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
+    SET_IDT_ENTRY(idt[28], &RTC_processor);             //index 28 of IDT reserved for RTC
 
 
 }
@@ -178,6 +183,25 @@ void keyboard_handler(){
     send_eoi(0x01);
 }
 
+/*
+ * RTC_interrupt
+ *    DESCRIPTION: RTC register C needs to be read, so interupts will happen again
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURNS: none
+ *    SIDE EFFECTS: set RTC_int to 1
+ *    NOTES: See OSDev links in .h file to understand macros
+ */ 
+void RTC_interrupt(){
+    cli();
+    // Possible space to put test_interrupts() function.
+    outb(REGISTER_C, RTC_PORT);	    // select register C
+    inb(CMOS_PORT);		            // just throw away contents
+    RTC_int = 1;                    // RTC interupt has occured
+    test_interrupts();
+    send_eoi(RTC_PORT);
+    sti();
+}
 
 
 

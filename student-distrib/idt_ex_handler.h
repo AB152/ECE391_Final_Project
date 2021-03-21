@@ -29,6 +29,7 @@ extern void alignment_check();      //exception 17
 extern void machine_check();        //exception 18
 extern void simd_floating_point();  //exception 19]
 extern void keyboard_processor();   //process keyboard interrupt
+extern void RTC_processor();
 
 #endif /* ASM */
 #endif /* _IDT_EX_HANDLER_H */

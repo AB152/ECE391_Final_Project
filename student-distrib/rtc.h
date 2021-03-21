@@ -5,6 +5,7 @@
 
 
 #define RTC_PORT		    0x70
+#define RTC_IRQ             0x08
 #define CMOS_PORT		    0x71
 #define DISABLE_NMI_A	    0x8A
 #define DISABLE_NMI_B	    0x8B
@@ -16,5 +17,3 @@
 volatile int RTC_int; // to keep track of RTC interupts
 
 void init_RTC();
-
-void RTC_interupt();

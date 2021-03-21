@@ -32,6 +32,7 @@
 .globl simd_floating_point
 .globl exception_processor
 .globl keyboard_processor
+.globl RTC_processor
 
 /*
 *ask TA about whether moving esp into eax is valid
@@ -182,6 +183,14 @@ keyboard_processor:             #once keyboard interrupt occurs, call keyboard h
     pushal 
     pushfl 
     call keyboard_handler
+    popfl 
+    popal 
+    iret 
+
+RTC_processor:
+    pushal 
+    pushfl 
+    call RTC_interrupt
     popfl 
     popal 
     iret 

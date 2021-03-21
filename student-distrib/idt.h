@@ -12,8 +12,6 @@
 
 #include "types.h"
 
-#define KEYBOARD_PORT 0x60
-
 
 extern void init_IDT();
 
@@ -21,6 +19,7 @@ extern void exception_handler(int32_t interrupt_vector);
 
 extern void keyboard_handler();
 
+extern void RTC_interrupt();
 
 //#endif /* ASM */
 #endif /* _IDT_H */
