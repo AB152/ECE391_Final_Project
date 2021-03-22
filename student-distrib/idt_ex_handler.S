@@ -35,7 +35,7 @@
 .globl RTC_processor
 
 /*
-*ask TA about whether moving esp into eax is valid
+* moving esp into eax is unnecessary
 */
 
 divide_by_zero: #0
@@ -185,7 +185,7 @@ keyboard_processor:             #once keyboard interrupt occurs, call keyboard h
     popal 
     iret 
 
-RTC_processor:
+RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt handler
     pushal 
     call RTC_interrupt
     popal 

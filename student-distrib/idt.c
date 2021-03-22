@@ -66,11 +66,11 @@ void init_IDT(){
         // What do we do for val[2] in the union?
 
         // Populate IDT vector with new entry
-        idt[i] = next_entry;
-    }
+        idt[i] = next_entry;    }
 
     /*
     * enter in exceptions and devices into the appropriate indices of the IDT table
+    * IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
     */
     SET_IDT_ENTRY(idt[0], &divide_by_zero);             //exception 0
     SET_IDT_ENTRY(idt[1], &debug);                      //exception 1
@@ -202,14 +202,14 @@ void keyboard_handler(){
  *    NOTES: See OSDev links in .h file to understand macros
  */ 
 void RTC_interrupt(){
-    //cli();
+    cli();
     // Possible space to put test_interrupts() function.
     outb(REGISTER_C, RTC_PORT);	    // select register C
     inb(CMOS_PORT);		            // just throw away contents
     //RTC_int = 1;                    // RTC interupt has occured
     
     send_eoi(RTC_IRQ);
-    test_interrupts();
-    //sti();
+    //test_interrupts();
+    sti();
 }
 

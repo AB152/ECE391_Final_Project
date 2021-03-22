@@ -16,4 +16,5 @@
 
 //volatile int RTC_int; // to keep track of RTC interupts
 
+// Initialize the RTC and turn on IRQ8
 void init_RTC();

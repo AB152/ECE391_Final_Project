@@ -42,7 +42,6 @@ _tss:
 tss_bottom:
 
     .align  16
-
     
 gdt:
 _gdt:

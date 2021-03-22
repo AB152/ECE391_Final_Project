@@ -22,6 +22,12 @@
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC     256
 
+// (MP3.1) Define macros for byte sizes
+#define ONE_KB 1024             // 1024 bytes make a KB
+#define FOUR_KB 4096
+#define FOUR_MB 0x400000        // Coincidentally, ONE_KB * ONE_KB * 4 == 0x400000, also the kernel is loaded here
+#define VIDMEM 0xB8000          // Start of video memory
+
 #ifndef ASM
 
 /* This structure is used to load descriptor base registers
@@ -91,10 +97,22 @@ typedef struct page_dir_4mb_t {
             uint32_t available              :3;     
             uint32_t page_attr_index        :1;  
             uint32_t reserved               :9; 
-            uint32_t page_table_addr        :10;
+            uint32_t base_addr              :10;
         } __attribute__ ((packed));
     };
 } page_dir_4mb_t;
+
+// (MP3.1) Typedef union so that we can have both 4KB and 4MB page dir entries
+typedef union page_dir_desc_t {
+    page_dir_4kb_t pd_kb;
+    page_dir_4mb_t pd_mb;
+} page_dir_desc_t;
+
+//struct used for organizing the separate GB in page directory
+typedef struct page_directory_t{
+    page_dir_desc_t one_gig[1024];
+} page_directory_t;
+
 
 // (MP3.1) Struct used for page table entries (32 bits long)
 typedef struct page_tab_desc_t {
@@ -115,6 +133,8 @@ typedef struct page_tab_desc_t {
         } __attribute__ ((packed));
     };
 } page_tab_desc_t;
+
+
 
 /* TSS structure */
 typedef struct __attribute__((packed)) tss_t {
