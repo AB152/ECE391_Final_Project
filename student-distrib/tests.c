@@ -97,7 +97,8 @@ int test_opcode_exception() {
 int test_page_fault(){
 	TEST_HEADER;
 	int * test_ptr = (int *) 0x90000;
-	(void)(*test_ptr);
+	int a = *(test_ptr);
+	a = 0;					// Dodge unused var warning
 	return FAIL;			// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
 }
 
@@ -113,7 +114,8 @@ int test_page_fault(){
 int test_no_page_fault(){
 	TEST_HEADER;
 	int * test_ptr = (int *) 0xb8001;
-	(void)(*test_ptr);
+	int a = *(test_ptr);
+	a = 0;				// Dodge unused var warning
 	return PASS;		// If exception wasn't thrown and we aren't looping, we passed (at least for MP3.1)
 }
 
