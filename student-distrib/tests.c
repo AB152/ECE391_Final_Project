@@ -106,6 +106,27 @@ int test_page_fault(){
 }
 
 
+/*
+ * test_no_page_fault (MP3.1)
+ *    DESCRIPTION: Test accessing a part of the physical mem that's not restricted such as xb8001
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURN VALUES: none
+ *    SIDE EFFECTS: Should throw page fault as non-present mem shouldn't be accessible
+ */
+int test_no_page_fault(){
+	// asm volatile ("movl 2(), %%eax"
+	// 			 :				// no outputs
+	// 			 :				// no inputs
+	// 			 : "eax"		// clobbers eax
+	// );
+	// return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+	int * test_ptr = (int *) 0xb8001;
+	int a = *(test_ptr);
+	return PASS;
+}
+
+
 
 /* Checkpoint 2 (MP3.2) tests */
 /* Checkpoint 3 (MP3.3) tests */
@@ -119,5 +140,6 @@ void launch_tests(){
 	// launch your tests here
 	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 
 	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());  // Test divzero
+	TEST_OUTPUT("test_no_page_fault", test_no_page_fault());		// Test no page fault
 	TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
 }
