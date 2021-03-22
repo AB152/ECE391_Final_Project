@@ -11,8 +11,8 @@
 #define TEST_OUTPUT(name, result)	\
 	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL")
 
-static int idt_test(void);
-static int test_divzero_exception(void);
+//static int idt_test(void);
+//static int test_divzero_exception(void);
 
 static inline void assertion_failure(){
 	/* Use exception #15 for assertions, otherwise
@@ -47,7 +47,7 @@ int idt_test(){
 	return result;
 }
 
-// MP3.1: Test cases for exceptions
+/* MP3.1: Test cases for exceptions */
 
 /*
  * test_divzero_exception (MP3.1)
@@ -57,14 +57,15 @@ int idt_test(){
  *    RETURN VALUES: none
  *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-// int test_divzero_exception() {
-// 	TEST_HEADER;
+int test_divzero_exception() {
+ 	TEST_HEADER;
 	
-// 	int i;
-// 	i = 1 / 0;
+ 	int i, j;
+	j = 1 - 1; 			// Dodge divide by zero warning
+ 	i = 1 / j;
 
-// 	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)
-// }
+ 	return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+}
 
 
 /*
@@ -75,14 +76,48 @@ int idt_test(){
  *    RETURN VALUE: none
  * 	  SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-// int test_opcode_exception() {
-// 	TEST_HEADER;
+int test_opcode_exception() {
+ 	TEST_HEADER;
 
-// 	// The processor should throw invalid opcode as register CR6 is reserved
-// 	asm volatile("mov %eax, %cr6");
+ 	// The processor should throw invalid opcode as register CR6 is reserved
+ 	asm volatile("movl %eax, %cr6");
 
-// 	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
-// }
+ 	return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)	
+}
+
+
+/*
+ * test_page_fault (MP3.1)
+ *    DESCRIPTION: Test accessing a part of the physical mem that's supposed to be restricted such as first 4MB
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURN VALUES: none
+ *    SIDE EFFECTS: Should throw page fault as non-present mem shouldn't be accessible
+ */
+int test_page_fault(){
+	TEST_HEADER;
+	int * test_ptr = (int *) 0x90000;
+	(void)(*test_ptr);
+	return FAIL;			// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+}
+
+
+/*
+ * test_no_page_fault (MP3.1)
+ *    DESCRIPTION: Test accessing a part of the physical mem that's not restricted such as xb8001
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURN VALUES: none
+ *    SIDE EFFECTS: Should throw page fault as non-present mem shouldn't be accessible
+ */
+int test_no_page_fault(){
+	TEST_HEADER;
+	int * test_ptr = (int *) 0xb8001;
+	(void)(*test_ptr);
+	return PASS;		// If exception wasn't thrown and we aren't looping, we passed (at least for MP3.1)
+}
+
+
 
 /* Checkpoint 2 (MP3.2) tests */
 /* Checkpoint 3 (MP3.3) tests */
@@ -95,5 +130,7 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
 	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 
-	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());
+	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());  // Test divzero
+	TEST_OUTPUT("test_no_page_fault", test_no_page_fault());		// Test no page fault
+	TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
 }
