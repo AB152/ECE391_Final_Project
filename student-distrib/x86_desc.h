@@ -109,7 +109,7 @@ typedef union page_dir_desc_t {
 } page_dir_desc_t;
 
 //struct used for organizing the separate GB in page directory
-typedef struct page_directory_t{
+typedef struct{
     page_dir_desc_t one_gig[1024];
 } page_directory_t;
 

@@ -100,6 +100,7 @@ void init_paging() {
     
     // Load page directory address in register CR3
     asm volatile ("movl $page_directory, %%eax;"
+                  "andl $0xFFFFFFE7, %%eax;"
                   "movl %%eax, %%cr3;"
                   "movl %%cr4, %%eax;"
                   "orl $0x00000010, %%eax;"
