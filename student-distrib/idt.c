@@ -92,8 +92,8 @@ void init_IDT(){
     SET_IDT_ENTRY(idt[18], &machine_check);             //exception 18
     SET_IDT_ENTRY(idt[19], &simd_floating_point);       //exception 19
 
-    SET_IDT_ENTRY(idt[21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
-    SET_IDT_ENTRY(idt[28], &RTC_processor);             //index 28 of IDT reserved for RTC
+    SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
+    SET_IDT_ENTRY(idt[0x28], &RTC_processor);             //index 28 of IDT reserved for RTC
 
 
 }
@@ -166,20 +166,29 @@ void exception_handler(int32_t interrupt_vector){
 
 void keyboard_handler(){
     /*scan_code stores the hex value of the key that is stored in the keyboard port*/
+    // int num_letters_ascii[] = {
+    // 0, 0, 49, 50, 51, 52, 53, 54, 55, 56,
+    // 57, 48, 0, 0, 0, 0, 113, 119, 101, 114,
+    // 116, 121, 117, 105, 111, 112, 0, 0, 0, 0,
+    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 0,
+    // 0, 0, 0, 0, 122, 120, 99, 118, 98, 110,
+    // 109
+    // };
     int num_letters_ascii[] = {
-    0, 0, 49, 50, 51, 52, 53, 54, 55, 56,
-    57, 48, 0, 0, 0, 0, 113, 119, 101, 114,
-    116, 121, 117, 105, 111, 112, 0, 0, 0, 0,
-    97, 115, 100, 102, 103, 104, 106, 107, 108, 0,
-    0, 0, 0, 0, 122, 120, 99, 118, 98, 110,
-    109
+    0, 0, '1', '2', '3', '4', '5', '6', '7', '8',
+    '9', '0', 0, 0, 0, 0, 'q', 'w', 'e', 'r',
+    't', 'y', 'u', 'i', 'o', 'p', 0, 0, 0, 0.
+    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 0,
+    0, 0 ,0 , 0, 'z', 'x', 'c', 'v', 'b', 'n',
+    'm'}
     
     //"unknown", "escape", "1", "2", ""
     };
     int scan_code = inb(KEYBOARD_PORT);
-    outb((char) num_letters_ascii[scan_code], 0x60);
-    //char* key_pressed=num_letters_ascii[scane_code];
-    //printf(key_pressed);
+    // outb((char) num_letters_ascii[scan_code], 0x60);
+    char key_pressed=num_letters_ascii[scan_code];
+    // CALL ITOA HERE???
+    putc(key_pressed);
     send_eoi(0x01);         //IRQ number for keyboard
 }
 
@@ -197,7 +206,7 @@ void RTC_interrupt(){
     // Possible space to put test_interrupts() function.
     outb(REGISTER_C, RTC_PORT);	    // select register C
     inb(CMOS_PORT);		            // just throw away contents
-    RTC_int = 1;                    // RTC interupt has occured
+    //RTC_int = 1;                    // RTC interupt has occured
     
     send_eoi(RTC_IRQ);
     test_interrupts();

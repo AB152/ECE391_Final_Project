@@ -150,9 +150,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     i8259_init();
 
-    init_RTC();
-
-    init_keyboard();
+    
 
     
 
@@ -162,6 +160,10 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
+
+    init_RTC();
+
+    init_keyboard();
 
 #ifdef RUN_TESTS
     /* Run tests */
