@@ -22,6 +22,12 @@
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC     256
 
+// (MP3.1) Define macros for byte sizes
+#define ONE_KB 1024             // 1024 bytes make a KB
+#define FOUR_KB 4096
+#define FOUR_MB 0x400000        // Coincidentally, ONE_KB * ONE_KB * 4 == 0x400000, also the kernel is loaded here
+#define VIDMEM 0xB8000          // Start of video memory
+
 #ifndef ASM
 
 /* This structure is used to load descriptor base registers
@@ -53,6 +59,82 @@ typedef struct seg_desc {
         } __attribute__ ((packed));
     };
 } seg_desc_t;
+
+// (MP3.1) Struct used for 4kb page directory entries (32 bits long)
+typedef struct page_dir_4kb_t {
+    union {
+        uint32_t val;
+        struct {
+            uint32_t present                :1;
+            uint32_t read_write             :1;
+            uint32_t user_supervisor        :1;
+            uint32_t page_write_through     :1;
+            uint32_t page_cache_disabled    :1;
+            uint32_t accessed               :1;
+            uint32_t reserved               :1;
+            uint32_t page_size              :1;
+            uint32_t global_bit             :1;
+            uint32_t available              :3;        
+            uint32_t page_table_addr        :20;
+        } __attribute__ ((packed));
+    };
+} page_dir_4kb_t;
+
+// (MP3.1) Struct used for 4mb page directory entries (32 bits long)
+typedef struct page_dir_4mb_t {
+    union {
+        uint32_t val;
+        struct {
+            uint32_t present                :1;
+            uint32_t read_write             :1;
+            uint32_t user_supervisor        :1;
+            uint32_t page_write_through     :1;
+            uint32_t page_cache_disabled    :1;
+            uint32_t accessed               :1;
+            uint32_t dirty                  :1;
+            uint32_t page_size              :1;
+            uint32_t global_bit             :1;
+            uint32_t available              :3;     
+            uint32_t page_attr_index        :1;  
+            uint32_t reserved               :9; 
+            uint32_t base_addr              :10;
+        } __attribute__ ((packed));
+    };
+} page_dir_4mb_t;
+
+// (MP3.1) Typedef union so that we can have both 4KB and 4MB page dir entries
+typedef union page_dir_desc_t {
+    page_dir_4kb_t pd_kb;
+    page_dir_4mb_t pd_mb;
+} page_dir_desc_t;
+
+//struct used for organizing the separate GB in page directory
+typedef struct{
+    //page_dir_desc_t one_gig[1024];
+} page_directory_t;
+
+
+// (MP3.1) Struct used for page table entries (32 bits long)
+typedef struct page_tab_desc_t {
+    union {
+        uint32_t val;
+        struct {
+            uint16_t present                 : 1;
+            uint16_t read_write              : 1;
+            uint8_t  user_supervisor         : 1;
+            uint32_t page_write_through      : 1;
+            uint32_t page_cache_disabled     : 1;
+            uint32_t accessed                : 1;
+            uint32_t dirty                   : 1;
+            uint32_t page_attr_tab_index     : 1;
+            uint32_t global_bit              : 1;
+            uint32_t avail                   : 3;
+            uint32_t page_base_address       : 20;
+        } __attribute__ ((packed));
+    };
+} page_tab_desc_t;
+
+
 
 /* TSS structure */
 typedef struct __attribute__((packed)) tss_t {
@@ -147,6 +229,7 @@ do {                                                            \
 /* IMPORTANT */
 // Colon denotes number of bits that the value is
 // Find every exception and interrupt in ISA doc table
+// The val array doesn't need to be used if u init using the struct
 /* An interrupt descriptor entry (goes into the IDT) */
 typedef union idt_desc_t {
     uint32_t val[2];

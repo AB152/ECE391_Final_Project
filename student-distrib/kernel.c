@@ -11,6 +11,7 @@
 #include "idt.h"
 #include "rtc.h"
 #include "keyboard.h"
+#include "paging.h"
 
 #define RUN_TESTS
 
@@ -140,19 +141,28 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     /* IMPORTANT */
-    // MAKE NEW .c and .h FILES TO INITIALIZE IDT
+    // MAKE NEW FILES for each new feature
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
+    // Initialize the IDT
     init_IDT();
 
     /* Init the PIC */
     i8259_init();
 
-    
+    /* Enable paging */
+    init_paging();
 
-    
+    /* Flush the TLB as we've made changes to the paging structure*/
+    //flush_tlb();
+
+    // Initialize RTC interrupts
+    init_RTC();
+
+    // Initialize Keyboard
+    init_keyboard();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
@@ -160,10 +170,6 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
-    init_RTC();
-
-    init_keyboard();
 
 #ifdef RUN_TESTS
     /* Run tests */

@@ -11,7 +11,7 @@
 uint8_t master_mask; /* IRQs 0-7  */
 uint8_t slave_mask;  /* IRQs 8-15 */
 
-/* Initialize the 8259 PIC */
+/* Initializes the 8259 PIC */
 void i8259_init(void) {
     // Clear interrupt flag so no interrupts occur during init
     cli();    //commented out by Gloria for testing
