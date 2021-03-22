@@ -213,10 +213,3 @@ void RTC_interrupt(){
     //sti();
 }
 
-
-
-
-// int upper_case_ascii[] = {
-//     0, 33,  
-    
-// }

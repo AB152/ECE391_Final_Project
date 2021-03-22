@@ -54,6 +54,68 @@ typedef struct seg_desc {
     };
 } seg_desc_t;
 
+// (MP3.1) Struct used for 4kb page directory entries (32 bits long)
+typedef struct page_dir_4kb_t {
+    union {
+        uint32_t val;
+        struct {
+            uint32_t present                :1;
+            uint32_t read_write             :1;
+            uint32_t user_supervisor        :1;
+            uint32_t page_write_through     :1;
+            uint32_t page_cache_disabled    :1;
+            uint32_t accessed               :1;
+            uint32_t reserved               :1;
+            uint32_t page_size              :1;
+            uint32_t global_bit             :1;
+            uint32_t available              :3;        
+            uint32_t page_table_addr        :20;
+        } __attribute__ ((packed));
+    };
+} page_dir_4kb_t;
+
+// (MP3.1) Struct used for 4mb page directory entries (32 bits long)
+typedef struct page_dir_4mb_t {
+    union {
+        uint32_t val;
+        struct {
+            uint32_t present                :1;
+            uint32_t read_write             :1;
+            uint32_t user_supervisor        :1;
+            uint32_t page_write_through     :1;
+            uint32_t page_cache_disabled    :1;
+            uint32_t accessed               :1;
+            uint32_t dirty                  :1;
+            uint32_t page_size              :1;
+            uint32_t global_bit             :1;
+            uint32_t available              :3;     
+            uint32_t page_attr_index        :1;  
+            uint32_t reserved               :9; 
+            uint32_t page_table_addr        :10;
+        } __attribute__ ((packed));
+    };
+} page_dir_4mb_t;
+
+// (MP3.1) Struct used for page table entries (32 bits long)
+typedef struct page_tab_desc_t {
+    union {
+        uint32_t val;
+        struct {
+            uint16_t present                 : 1;
+            uint16_t read_write              : 1;
+            uint8_t  user_supervisor         : 1;
+            uint32_t page_write_through      : 1;
+            uint32_t page_cache_disabled     : 1;
+            uint32_t accessed                : 1;
+            uint32_t dirty                   : 1;
+            uint32_t page_attr_tab_index     : 1;
+            uint32_t global_bit              : 1;
+            uint32_t avail                   : 3;
+            uint32_t page_base_address       : 20;
+        } __attribute__ ((packed));
+    };
+} page_tab_desc_t;
+
 /* TSS structure */
 typedef struct __attribute__((packed)) tss_t {
     uint16_t prev_task_link;

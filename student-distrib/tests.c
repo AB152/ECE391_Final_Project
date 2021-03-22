@@ -79,7 +79,7 @@ int idt_test(){
 // 	TEST_HEADER;
 
 // 	// The processor should throw invalid opcode as register CR6 is reserved
-// 	asm volatile("mov %eax, %cr6");
+// 	asm volatile("mov %%eax, %%cr6");
 
 // 	return FAIL;		// Assuming fail as the system shouldn't be able to reach this line (at least for MP3.1)	
 // }
