@@ -94,12 +94,15 @@ int test_opcode_exception() {
  *    SIDE EFFECTS: Should throw page fault as non-present mem shouldn't be accessible
  */
 int test_page_fault(){
-	asm volatile ("movl $2, %%eax"
-				 :				// no outputs
-				 :				// no inputs
-				 : "eax"		// clobbers eax
-	);
-	return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+	// asm volatile ("movl 2(), %%eax"
+	// 			 :				// no outputs
+	// 			 :				// no inputs
+	// 			 : "eax"		// clobbers eax
+	// );
+	// return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+	int * test_ptr = (int *) 0x90000;
+	int a = *(test_ptr);
+	return 0;
 }
 
 
@@ -116,5 +119,5 @@ void launch_tests(){
 	// launch your tests here
 	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 
 	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());  // Test divzero
-	//TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
+	TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
 }

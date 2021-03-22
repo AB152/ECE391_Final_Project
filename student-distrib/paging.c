@@ -26,15 +26,38 @@
  */
 void init_paging() {
     
-    int i,j;
-    
+    int i;
+
+    for(i=0;i < ONE_KB;i++){
+            //fill 8MB-4GB w/ blank pages b/c unused
+            //if(j!=0 && i>2){
+                page_directory[i]/*.one_gig[i]*/.pd_mb.present = 0; 
+                page_directory[i]/*.one_gig[i]*/.pd_mb.read_write = 1; //left as 1 b/c all pages are marked read/write for mp3
+                page_directory[i]/*.one_gig[i]*/.pd_mb.user_supervisor = 1;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.page_write_through = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.page_cache_disabled = 1;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.accessed = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.dirty = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.page_size = 1;   //left 1 to indicate directory is 4mb
+                page_directory[i]/*.one_gig[i]*/.pd_mb.global_bit = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.available = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.page_attr_index = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.reserved = 0;
+                page_directory[i]/*.one_gig[i]*/.pd_mb.base_addr = i;
+            //}
+
+        }      
+
+
+
+
     // Blank/populate page table
     for(i=0; i<ONE_KB; i++){
         page_tab_desc_t page;
         
         page.present = 0;
-        page.read_write = 0;
-        page.user_supervisor = 0;
+        page.read_write = 1;
+        page.user_supervisor = 1;
         page.page_write_through = 0;
         page.page_cache_disabled = 0;
         page.accessed = 0;
@@ -104,10 +127,11 @@ void init_paging() {
         }                     
     //}
     
-    
+    flush_tlb();
+
     // Load page directory address in register CR3
-    asm volatile ("movl $page_directory, %%eax;"
-                  "andl $0xFFFFFFE7, %%eax;"
+    asm volatile ("movl  %0, %%eax;"
+                  //"andl $0xFFFFFFE7, %%eax;"
                   "movl %%eax, %%cr3;"
                   "movl %%cr4, %%eax;"
                   "orl $0x00000010, %%eax;"
@@ -116,7 +140,7 @@ void init_paging() {
                   "orl $0x80000000, %%eax;"
                   "movl %%eax, %%cr0;"
                 :               // no outputs
-                :               // no inputs
+                : "r" (page_directory)              // no inputs
                 : "eax", "cc"        // clobbers eax and condition codes
     );
 
@@ -134,8 +158,6 @@ void init_paging() {
                   :             // no inputs
                   : "eax", "cc"      // clobbers eax and condition codes
     ); */
-    
-
     
 
 }
