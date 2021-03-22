@@ -9,7 +9,7 @@
 
 
 // (MP3.1) Page directory
-page_directory_t page_directory[4] __attribute__((aligned (FOUR_KB)));
+page_dir_desc_t page_directory[1024] __attribute__((aligned (FOUR_KB)));
 // (MP3.1) Page table
 page_tab_desc_t page_table_one[1024] __attribute__((aligned (FOUR_KB)));
 

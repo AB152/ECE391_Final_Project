@@ -158,18 +158,18 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Flush the TLB as we've made changes to the paging structure*/
     //flush_tlb();
 
+    // Initialize RTC interrupts
+    init_RTC();
+
+    // Initialize Keyboard
+    init_keyboard();
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
-    // Initialize RTC interrupts
-    init_RTC();
-
-    // Initialize Keyboard
-    init_keyboard();
 
 #ifdef RUN_TESTS
     /* Run tests */
