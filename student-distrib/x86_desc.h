@@ -147,6 +147,7 @@ do {                                                            \
 /* IMPORTANT */
 // Colon denotes number of bits that the value is
 // Find every exception and interrupt in ISA doc table
+// The val array doesn't need to be used if u init using the struct
 /* An interrupt descriptor entry (goes into the IDT) */
 typedef union idt_desc_t {
     uint32_t val[2];
