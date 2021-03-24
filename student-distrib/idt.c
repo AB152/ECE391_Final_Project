@@ -202,14 +202,12 @@ void keyboard_handler(){
  *    NOTES: See OSDev links in .h file to understand macros
  */ 
 void RTC_interrupt(){
-    cli();
-    // Possible space to put test_interrupts() function.
     outb(REGISTER_C, RTC_PORT);	    // select register C
     inb(CMOS_PORT);		            // just throw away contents
-    //RTC_int = 1;                    // RTC interupt has occured
+    RTC_int = 1;                    // RTC interupt has occured
     
     send_eoi(RTC_IRQ);
-    //test_interrupts();
-    sti();
+    // Possible space to put test_interrupts() function.
+    test_interrupts();
 }
 
