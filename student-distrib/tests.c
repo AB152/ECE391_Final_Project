@@ -140,6 +140,6 @@ void launch_tests(){
 	// launch your tests here
 	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 
 	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());  // Test divzero
-	TEST_OUTPUT("test_no_page_fault", test_no_page_fault());		// Test no page fault
-	TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
+	//TEST_OUTPUT("test_no_page_fault", test_no_page_fault());		// Test no page fault
+	//TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
 }
