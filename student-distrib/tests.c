@@ -47,7 +47,7 @@ int idt_test(){
 	return result;
 }
 
-// MP3.1: Test cases for exceptions
+/* MP3.1: Test cases for exceptions */
 
 /*
  * test_divzero_exception (MP3.1)
@@ -57,14 +57,15 @@ int idt_test(){
  *    RETURN VALUES: none
  *    SIDE EFFECTS: Should force an infinite loop because our exception handlers just infinite loop
  */
-//int test_divzero_exception() {
-// 	TEST_HEADER;
+int test_divzero_exception() {
+ 	TEST_HEADER;
 	
-// 	int i;
-// 	i = 1 / 0;
+ 	int i, j;
+	j = 1 - 1; 			// Dodge divide by zero warning
+ 	i = 1 / j;
 
-// 	return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
-// }
+ 	return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+}
 
 
 /*
@@ -94,15 +95,11 @@ int test_opcode_exception() {
  *    SIDE EFFECTS: Should throw page fault as non-present mem shouldn't be accessible
  */
 int test_page_fault(){
-	// asm volatile ("movl 2(), %%eax"
-	// 			 :				// no outputs
-	// 			 :				// no inputs
-	// 			 : "eax"		// clobbers eax
-	// );
-	// return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+	TEST_HEADER;
 	int * test_ptr = (int *) 0x90000;
 	int a = *(test_ptr);
-	return 0;
+	a = 0;					// Dodge unused var warning
+	return FAIL;			// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
 }
 
 
@@ -115,15 +112,11 @@ int test_page_fault(){
  *    SIDE EFFECTS: Should throw page fault as non-present mem shouldn't be accessible
  */
 int test_no_page_fault(){
-	// asm volatile ("movl 2(), %%eax"
-	// 			 :				// no outputs
-	// 			 :				// no inputs
-	// 			 : "eax"		// clobbers eax
-	// );
-	// return FAIL;		// If exception wasn't thrown and we aren't looping, we failed (at least for MP3.1)
+	TEST_HEADER;
 	int * test_ptr = (int *) 0xb8001;
 	int a = *(test_ptr);
-	return PASS;
+	a = 0;				// Dodge unused var warning
+	return PASS;		// If exception wasn't thrown and we aren't looping, we passed (at least for MP3.1)
 }
 
 
