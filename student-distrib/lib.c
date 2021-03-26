@@ -470,8 +470,7 @@ int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
  * Function: increments video memory. To be used to test rtc */
 void test_interrupts(void) {
     int32_t i;
-    // Modified so that only the top left pixel is 
-    for (i = 0; i < /*NUM_ROWS **/ NUM_COLS; i++) {
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
 }

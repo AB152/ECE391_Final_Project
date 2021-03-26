@@ -2,7 +2,6 @@
  * vim:ts=4 noexpandtab
  */
 
-
 #include "idt.h"
 
 #include "idt_ex_handler.h"
@@ -164,7 +163,7 @@ void exception_handler(int32_t interrupt_vector){
 }
 
 
-void keyboard_handler(){
+void keyboard_handler() {
     /* scan_code stores the hex value of the key that is stored in the keyboard port */
     // Scan code + 0x80 is that key but released/"de-pressed"
     // ASCII + 0x20 is the lower case of that letter
@@ -181,6 +180,7 @@ void keyboard_handler(){
     // 50, 51, 48, 46, 0, 0, 0, 0, 0
     // };
     
+    // Index is the scan code, the value at an index is that scan code key's ASCII
     int scan_code_to_ascii[] = {
     0, 0x1A, '1', '2', '3', '4', '5', '6', '7', '8',
     '9', '0', '-', '=', 0x08, 0x09, 'q', 'w', 'e', 'r',
@@ -193,18 +193,189 @@ void keyboard_handler(){
     '2', '3', '0', '.', 0, 0, 0, 0, 0
     };
 
+    int temp_i;   // Temp var used for any misc loop index
+
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
-    
-    // Only putc if key is pressed (F12 pressed is 0x58, ignore key releases)
-    if(scan_code <= 0x58) {
-        char key_pressed = scan_code_to_ascii[scan_code];
-        // CALL ITOA HERE???
-        putc(key_pressed);
+
+    // Set flags is control character key is pressed
+    switch(scan_code){
+        case LEFT_SHIFT_PRESSED:
+            left_shift_flag = 1;
+            break;
+        case LEFT_SHIFT_RELEASED:
+            left_shift_flag = 0;
+            break;
+        case RIGHT_SHIFT_PRESSED:
+            right_shift_flag = 1;
+            break;
+        case RIGHT_SHIFT_RELEASED:
+            right_shift_flag = 0;
+            break;
+        case CAPS_LOCK_PRESSED:
+            caps_flag = !caps_flag;
+            break;
+        case LEFT_CTRL_PRESSED:
+            ctrl_flag = 1;
+            break;
+        case LEFT_CTRL_RELEASED:
+            ctrl_flag = 0;
+            break;
+        case LEFT_ALT_PRESSED:
+            alt_flag = 1;
+            break;
+        case LEFT_ALT_RELEASED:
+            alt_flag = 0;
+            break;
+        case TAB_PRESSED:
+            tab_flag = 1;
+            break;
+        case TAB_RELEASED:
+            tab_flag = 0;
+            break;
+        case ENTER_PRESSED:
+            enter_flag = 1;
+            break;
+        case ENTER_RELEASED:
+            enter_flag = 0;
+            break;
+        case BACKSPACE_PRESSED:
+            backspace_flag = 1;
+            break;
+        case BACKSPACE_RELEASED:
+            backspace_flag = 0;
+            break;
+    }
+
+    // Delete last char if backspace pressed and buffer isn't empty, then return from interrupt
+    if(backspace_flag && keyboard_buf_i > 0) {
+        keyboard_buf_i--;
+        keyboard_buf[keyboard_buf_i] = 0;
+        // IMPORTANT: figure out how to delete last char from screen
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
+    // If entering a char will overflow buffer, ignore the key press and end interrupt
+    // Also ignore key releases (F12 pressed is 0x58, any scan codes greater than that are unneeded)
+    if(keyboard_buf_i == KEYBOARD_BUF_SIZE || scan_code > 0x58) {
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
     
+    // Convert scan code to ASCII equivalent
+    char key_pressed = scan_code_to_ascii[scan_code];
+
+    if((caps_flag ^ (left_shift_flag || right_shift_flag)) && (key_pressed >= 97 && key_pressed >= 122)){
+        key_pressed = key_pressed - 32; // Map to caps
+    }
+
+    if((left_shift_flag || right_shift_flag)) {
+        // Map special characters
+        switch(key_pressed){
+            case '`':
+                key_pressed = '~';
+                break;
+            case '1':
+                key_pressed = '!';
+                break;
+            case '2':
+                key_pressed = '@';
+                break;
+            case '3':
+                key_pressed = '#';
+                break;
+            case '4':
+                key_pressed = '$';
+                break;
+            case '5':
+                key_pressed = '%';
+                break;
+            case '6':
+                key_pressed = '^';
+                break;
+            case '7':
+                key_pressed = '&';
+                break;
+            case '8':
+                key_pressed = '*';
+                break;
+            case '9':
+                key_pressed = '(';
+                break;
+            case '0':
+                key_pressed = ')';
+                break;
+            case '-':
+                key_pressed = '_';
+                break;
+            case '=':
+                key_pressed = '+';
+                break;
+            case '[':
+                key_pressed = '{';
+                break;
+            case ']':
+                key_pressed = '}';
+                break;
+            case '\\':
+                key_pressed = '|';
+                break;
+            case ';':
+                key_pressed = ':';
+                break;
+            case '\'':
+                key_pressed = '"';
+                break;
+            case ',':
+                key_pressed = '<';
+                break;
+            case '.':
+                key_pressed = '>';
+                break;
+            case '/':
+                key_pressed = '?';
+                break;
+        }
+    }
+
+    if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
+        // Clear buffer and put cursor to the left
+    }
+
+    if(alt_flag) {
+        // Case for alt flag
+    }
+    
+    if(tab_flag) {
+        // Tab = 8 spaces, but clip if overflow
+        for(temp_i = 0; temp_i < 8; temp_i++) {
+            if(keyboard_buf_i < KEYBOARD_BUF_SIZE) {
+                keyboard_buf[keyboard_buf_i] = ' ';
+                keyboard_buf_i++;
+                putc(' ');
+            }
+            else 
+                break;
+        }
+        /* IMPORTANT */
+        // Ask TA if tab with less than 8 spaces left in buffer continues tab on next line
+        // Also ask TA if we need to process multiple letters pressed at same time
+    }
+    
+    // enter_flag might be unnecessary and we can just use ASCII '\n'
+    if(enter_flag) {
+        // Scroll up if screen is full
+        putc('\n');
+    }
+
+    // Put key pressed in buffer and on screen and advance buffer index
+    keyboard_buf[keyboard_buf_i] = key_pressed;
+    keyboard_buf_i++;        
+    putc(key_pressed);
+    
     // Send EOI to PIC
-    send_eoi(0x01);         // 0x01 is IRQ number for keyboard
+    send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard
 }
 
 /*
