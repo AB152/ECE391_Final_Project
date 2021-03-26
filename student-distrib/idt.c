@@ -165,31 +165,46 @@ void exception_handler(int32_t interrupt_vector){
 
 
 void keyboard_handler(){
-    /*scan_code stores the hex value of the key that is stored in the keyboard port*/
-    // int num_letters_ascii[] = {
-    // 0, 0, 49, 50, 51, 52, 53, 54, 55, 56,
-    // 57, 48, 0, 0, 0, 0, 113, 119, 101, 114,
-    // 116, 121, 117, 105, 111, 112, 0, 0, 0, 0,
-    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 0,
-    // 0, 0, 0, 0, 122, 120, 99, 118, 98, 110,
-    // 109
-    // };
-    int num_letters_ascii[] = {
-    0, 0, '1', '2', '3', '4', '5', '6', '7', '8',
-    '9', '0', 0, 0, 0, 0, 'q', 'w', 'e', 'r',
-    't', 'y', 'u', 'i', 'o', 'p', 0, 0, 0, 0,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 0,
-    0, 0 ,0 , 0, 'z', 'x', 'c', 'v', 'b', 'n',
-    'm'
+    /* scan_code stores the hex value of the key that is stored in the keyboard port */
+    // Scan code + 0x80 is that key but released/"de-pressed"
+    // ASCII + 0x20 is the lower case of that letter
     
-    //"unknown", "escape", "1", "2", ""
+    // int scan_code_to_ascii[] = {
+    // 0, 26, 49, 50, 51, 52, 53, 54, 55, 56,
+    // 57, 48, 45, 61, 8, 9, 113, 119, 101, 114,
+    // 116, 121, 117, 105, 111, 112, 91, 93, 10, 0,
+    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 59,
+    // 39, 96, 0, 92, 122, 120, 99, 118, 98, 110,
+    // 109, 44, 46, 47, 0, 42, 0, 32, 0, 0
+    // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    // 0, 55, 56, 57, 45, 52, 53, 54, 43, 49,
+    // 50, 51, 48, 46, 0, 0, 0, 0, 0
+    // };
+    
+    int scan_code_to_ascii[] = {
+    0, 0x1A, '1', '2', '3', '4', '5', '6', '7', '8',
+    '9', '0', '-', '=', 0x08, 0x09, 'q', 'w', 'e', 'r',
+    't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 0,
+    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
+    '\'', '`', 0, '\\', 'z', 'x', 'c', 'v', 'b', 'n',
+    'm', ',', '.', '/', 0, '*', 0, ' ', 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, '7', '8', '9', '-', '4', '5', '6', '+', '1',
+    '2', '3', '0', '.', 0, 0, 0, 0, 0
     };
+
+    // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
-    // outb((char) num_letters_ascii[scan_code], 0x60);
-    char key_pressed=num_letters_ascii[scan_code];
-    // CALL ITOA HERE???
-    putc(key_pressed);
-    send_eoi(0x01);         //IRQ number for keyboard
+    
+    // Only putc if key is pressed (F12 pressed is 0x58, ignore key releases)
+    if(scan_code <= 0x58) {
+        char key_pressed = scan_code_to_ascii[scan_code];
+        // CALL ITOA HERE???
+        putc(key_pressed);
+    }
+    
+    // Send EOI to PIC
+    send_eoi(0x01);         // 0x01 is IRQ number for keyboard
 }
 
 /*

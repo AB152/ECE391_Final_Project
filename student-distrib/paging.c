@@ -43,7 +43,6 @@ void init_paging() {
                 page_directory[i].pd_mb.page_attr_index = 0;
                 page_directory[i].pd_mb.reserved = 0;
                 page_directory[i].pd_mb.base_addr = i;
-            //}
 
     }      
 
