@@ -24,5 +24,11 @@ extern void keyboard_handler();
 // Handles interrupts from the real-time clock
 extern void RTC_interrupt();
 
+int shift_flag;
+
+int ctrl_flag;
+
+int caps_flag;
+
 //#endif /* ASM */
 #endif /* _IDT_H */
