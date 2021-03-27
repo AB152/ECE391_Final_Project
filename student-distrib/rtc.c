@@ -1,5 +1,10 @@
+/* rtc.c - implementation of real time clock device
+ *  vim:ts=4 noexpandtab
+ */
 
 #include "rtc.h"
+#include "idt_ex_handler.h"
+#include "x86_desc.h"
 #include "i8259.h"
 
 /* List of usable RTC frequencies as bitmaps to Register A's lowest 4 bits
@@ -23,9 +28,29 @@ void init_RTC() {
     outb(DISABLE_NMI_B, RTC_PORT);		// set the index again (a read will reset the index to register D)
     outb(prev | 0x40, CMOS_PORT);	    // write the previous value ORed with 0x40. This turns on bit 6 of register B
     enable_irq(RTC_IRQ);
+    SET_IDT_ENTRY(idt[0x28], &RTC_processor);             //index 28 of IDT reserved for RTC
     RTC_int = 0;                // Clear RTC flag
     sti();                      // (perform an STI) and reenable NMI if you wish? 
 
+}
+
+/*
+ * RTC_interrupt
+ *    DESCRIPTION: RTC register C needs to be read, so interupts will happen again
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURNS: none
+ *    SIDE EFFECTS: set RTC_int to 1
+ *    NOTES: See OSDev links in .h file to understand macros
+ */ 
+void RTC_interrupt(){
+    outb(REGISTER_C, RTC_PORT);	    // select register C
+    inb(CMOS_PORT);		            // just throw away contents
+    RTC_int = 1;                    // RTC interupt has occured
+    
+    send_eoi(RTC_IRQ);
+    // Possible space to put test_interrupts() function.
+    //test_interrupts();
 }
 
 /*

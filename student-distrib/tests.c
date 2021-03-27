@@ -185,7 +185,7 @@ void launch_tests(){
 	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());  // Test divzero
 	//TEST_OUTPUT("test_no_page_fault", test_no_page_fault());		// Test no page fault
 	//TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
-	TEST_OUTPUT("test_RTC_open", test_RTC_open());
-	TEST_OUTPUT("test_RTC_read", test_RTC_read());
-	TEST_OUTPUT("test_RTC_write", test_RTC_write());
+	//TEST_OUTPUT("test_RTC_open", test_RTC_open());
+	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
+	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
 }

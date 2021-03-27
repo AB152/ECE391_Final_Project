@@ -1,6 +1,9 @@
+/* terminal.c - terminal driver functions
+ *  vim:ts=4 noexpandtab
+ */
 
 #include "terminal.h"
-#include "lib.c"
+#include "lib.h"
 
 /*
  * terminal_open

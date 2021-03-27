@@ -117,6 +117,7 @@ void init_paging() {
 
     }       
 
+    /* Flush the TLB as we've made changes to the paging structure */
     flush_tlb();
 
     // Load and enable page directory address in register CR3
@@ -132,22 +133,6 @@ void init_paging() {
                 : "r" (page_directory)              // no inputs
                 : "eax", "cc"        // clobbers eax and condition codes
     );
-
-
-    /* Enable paging by setting the 31st bit in the CR0 register to 1
-    asm volatile (              
-                :               // no outputs
-                :               // no inputs
-                : "eax", "cc"        // clobbers eax and condition codes
-    ); */
-
-    /* Enable Page Size Extension (4 MB pages) by setting corresponding bit to 1
-    asm volatile (
-                  :             // no outputs
-                  :             // no inputs
-                  : "eax", "cc"      // clobbers eax and condition codes
-    ); */
-    
 
 }
 

@@ -62,14 +62,14 @@ void init_IDT(){
         if(i == 0x80)
             next_entry.dpl = 0x03;              // System calls should always have user level DPL (ring 3)
 
-        // What do we do for val[2] in the union?
+        // Turns out that the union means that either val or the struct can be used to represent the bits
 
         // Populate IDT vector with new entry
-        idt[i] = next_entry;    }
+        idt[i] = next_entry;    
+    }
 
     /*
-    * enter in exceptions and devices into the appropriate indices of the IDT table
-    * IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
+    * enter in exceptions into the appropriate indices of the IDT table
     */
     SET_IDT_ENTRY(idt[0], &divide_by_zero);             //exception 0
     SET_IDT_ENTRY(idt[1], &debug);                      //exception 1
@@ -91,10 +91,9 @@ void init_IDT(){
     SET_IDT_ENTRY(idt[18], &machine_check);             //exception 18
     SET_IDT_ENTRY(idt[19], &simd_floating_point);       //exception 19
 
-    SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
-    SET_IDT_ENTRY(idt[0x28], &RTC_processor);             //index 28 of IDT reserved for RTC
-
-
+    // IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
+    // Moved keyboard set_idt_entry to init_keyboard in keyboard.c
+    // Moved RTC set_idt_entry to init_RTC in rtc.c
 }
 
 // Handles interrupt (print error message and other relevant items like regs)
@@ -161,239 +160,3 @@ void exception_handler(int32_t interrupt_vector){
             while(1);
     }
 }
-
-
-void keyboard_handler() {
-    /* scan_code stores the hex value of the key that is stored in the keyboard port */
-    // Scan code + 0x80 is that key but released/"de-pressed"
-    // ASCII + 0x20 is the lower case of that letter
-    
-    // int scan_code_to_ascii[] = {
-    // 0, 26, 49, 50, 51, 52, 53, 54, 55, 56,
-    // 57, 48, 45, 61, 8, 9, 113, 119, 101, 114,
-    // 116, 121, 117, 105, 111, 112, 91, 93, 10, 0,
-    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 59,
-    // 39, 96, 0, 92, 122, 120, 99, 118, 98, 110,
-    // 109, 44, 46, 47, 0, 42, 0, 32, 0, 0
-    // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    // 0, 55, 56, 57, 45, 52, 53, 54, 43, 49,
-    // 50, 51, 48, 46, 0, 0, 0, 0, 0
-    // };
-    
-    // Index is the scan code, the value at an index is that scan code key's ASCII
-    int scan_code_to_ascii[] = {
-    0, 0x1A, '1', '2', '3', '4', '5', '6', '7', '8',
-    '9', '0', '-', '=', 0x08, 0x09, 'q', 'w', 'e', 'r',
-    't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 0,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
-    '\'', '`', 0, '\\', 'z', 'x', 'c', 'v', 'b', 'n',
-    'm', ',', '.', '/', 0, '*', 0, ' ', 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, '7', '8', '9', '-', '4', '5', '6', '+', '1',
-    '2', '3', '0', '.', 0, 0, 0, 0, 0
-    };
-
-    int temp_i;   // Temp var used for any misc loop index
-
-    // Get scan code from keyboard
-    int scan_code = inb(KEYBOARD_PORT);
-
-    // Set flags is control character key is pressed
-    switch(scan_code){
-        case LEFT_SHIFT_PRESSED:
-            left_shift_flag = 1;
-            break;
-        case LEFT_SHIFT_RELEASED:
-            left_shift_flag = 0;
-            break;
-        case RIGHT_SHIFT_PRESSED:
-            right_shift_flag = 1;
-            break;
-        case RIGHT_SHIFT_RELEASED:
-            right_shift_flag = 0;
-            break;
-        case CAPS_LOCK_PRESSED:
-            caps_flag = !caps_flag;
-            break;
-        case LEFT_CTRL_PRESSED:
-            ctrl_flag = 1;
-            break;
-        case LEFT_CTRL_RELEASED:
-            ctrl_flag = 0;
-            break;
-        case LEFT_ALT_PRESSED:
-            alt_flag = 1;
-            break;
-        case LEFT_ALT_RELEASED:
-            alt_flag = 0;
-            break;
-        case TAB_PRESSED:
-            tab_flag = 1;
-            break;
-        case TAB_RELEASED:
-            tab_flag = 0;
-            break;
-        case ENTER_PRESSED:
-            enter_flag = 1;
-            break;
-        case ENTER_RELEASED:
-            enter_flag = 0;
-            break;
-        case BACKSPACE_PRESSED:
-            backspace_flag = 1;
-            break;
-        case BACKSPACE_RELEASED:
-            backspace_flag = 0;
-            break;
-    }
-
-    // Delete last char if backspace pressed and buffer isn't empty, then return from interrupt
-    if(backspace_flag && keyboard_buf_i > 0) {
-        keyboard_buf_i--;
-        keyboard_buf[keyboard_buf_i] = 0;
-        // IMPORTANT: figure out how to delete last char from screen
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-
-    // If entering a char will overflow buffer, ignore the key press and end interrupt
-    // Also ignore key releases (F12 pressed is 0x58, any scan codes greater than that are unneeded)
-    if(keyboard_buf_i == KEYBOARD_BUF_SIZE || scan_code > 0x58) {
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-    
-    // Convert scan code to ASCII equivalent
-    char key_pressed = scan_code_to_ascii[scan_code];
-
-    if((caps_flag ^ (left_shift_flag || right_shift_flag)) && (key_pressed >= 97 && key_pressed >= 122)){
-        key_pressed = key_pressed - 32; // Map to caps
-    }
-
-    if((left_shift_flag || right_shift_flag)) {
-        // Map special characters
-        switch(key_pressed){
-            case '`':
-                key_pressed = '~';
-                break;
-            case '1':
-                key_pressed = '!';
-                break;
-            case '2':
-                key_pressed = '@';
-                break;
-            case '3':
-                key_pressed = '#';
-                break;
-            case '4':
-                key_pressed = '$';
-                break;
-            case '5':
-                key_pressed = '%';
-                break;
-            case '6':
-                key_pressed = '^';
-                break;
-            case '7':
-                key_pressed = '&';
-                break;
-            case '8':
-                key_pressed = '*';
-                break;
-            case '9':
-                key_pressed = '(';
-                break;
-            case '0':
-                key_pressed = ')';
-                break;
-            case '-':
-                key_pressed = '_';
-                break;
-            case '=':
-                key_pressed = '+';
-                break;
-            case '[':
-                key_pressed = '{';
-                break;
-            case ']':
-                key_pressed = '}';
-                break;
-            case '\\':
-                key_pressed = '|';
-                break;
-            case ';':
-                key_pressed = ':';
-                break;
-            case '\'':
-                key_pressed = '"';
-                break;
-            case ',':
-                key_pressed = '<';
-                break;
-            case '.':
-                key_pressed = '>';
-                break;
-            case '/':
-                key_pressed = '?';
-                break;
-        }
-    }
-
-    if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
-        // Clear buffer and put cursor to the left
-    }
-
-    if(alt_flag) {
-        // Case for alt flag
-    }
-    
-    if(tab_flag) {
-        // Tab = 8 spaces, but clip if overflow
-        for(temp_i = 0; temp_i < 8; temp_i++) {
-            if(keyboard_buf_i < KEYBOARD_BUF_SIZE) {
-                keyboard_buf[keyboard_buf_i] = ' ';
-                keyboard_buf_i++;
-                putc(' ');
-            }
-            else 
-                break;
-        }
-        /* IMPORTANT */
-        // Ask TA if tab with less than 8 spaces left in buffer continues tab on next line
-        // Also ask TA if we need to process multiple letters pressed at same time
-    }
-    
-    // enter_flag might be unnecessary and we can just use ASCII '\n'
-    if(enter_flag) {
-        // Scroll up if screen is full
-        putc('\n');
-    }
-
-    // Put key pressed in buffer and on screen and advance buffer index
-    keyboard_buf[keyboard_buf_i] = key_pressed;
-    keyboard_buf_i++;        
-    putc(key_pressed);
-    
-    // Send EOI to PIC
-    send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard
-}
-
-/*
- * RTC_interrupt
- *    DESCRIPTION: RTC register C needs to be read, so interupts will happen again
- *    INPUTS: none
- *    OUTPUTS: none
- *    RETURNS: none
- *    SIDE EFFECTS: set RTC_int to 1
- *    NOTES: See OSDev links in .h file to understand macros
- */ 
-void RTC_interrupt(){
-    outb(REGISTER_C, RTC_PORT);	    // select register C
-    inb(CMOS_PORT);		            // just throw away contents
-    RTC_int = 1;                    // RTC interupt has occured
-    
-    send_eoi(RTC_IRQ);
-    // Possible space to put test_interrupts() function.
-    test_interrupts();
-}
-

@@ -1,7 +1,12 @@
+/* rtc.h - declarations and macros for real time clock device
+ *  vim:ts=4 noexpandtab
+ */
 
+// Helpful RTC-related links:
 // https://wiki.osdev.org/RTC#Setting_the_Registers
 // https://wiki.osdev.org/RTC#Turning_on_IRQ_8
 // https://courses.engr.illinois.edu/ece391/sp2021/secure/references/ds12887.pdf slide 19 for RTC frequency
+
 #ifndef _RTC_H
 #define _RTC_H
 
@@ -23,6 +28,9 @@ volatile int RTC_int;
 
 // Initialize the RTC and turn on IRQ8
 void init_RTC();
+
+// Handles interrupts from the real-time clock
+extern void RTC_interrupt();
 
 // Initialize RTC to 2 Hz
 int RTC_open();

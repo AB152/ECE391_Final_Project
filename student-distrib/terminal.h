@@ -1,4 +1,4 @@
-/* terminal.h
+/* terminal.h - declarations for terminal driver
  *  vim:ts=4 noexpandtab
  */
 
@@ -20,6 +20,6 @@ int terminal_close();
 int terminal_read(char * buf);
 
 // Writes to the screen from buf and returns num bytes written or -1
-int terminal_write();
+int terminal_write(char * buf);
 
 #endif /* _TERMINAL_H */

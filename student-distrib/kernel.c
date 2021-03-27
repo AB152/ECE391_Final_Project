@@ -155,9 +155,6 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Enable paging */
     init_paging();
 
-    /* Flush the TLB as we've made changes to the paging structure*/
-    //flush_tlb();
-
     // Initialize RTC interrupts
     init_RTC();
 

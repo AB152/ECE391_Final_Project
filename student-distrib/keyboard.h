@@ -1,3 +1,6 @@
+/* keyboard.h - declarations and macros for keyboard
+ *  vim:ts=4 noexpandtab
+ */
 
 // http://www.philipstorr.id.au/pcbook/book3/scancode.htm
 
@@ -12,13 +15,8 @@
 #define LEFT_CTRL_RELEASED      0x9D
 #define LEFT_ALT_PRESSED        0x38
 #define LEFT_ALT_RELEASED       0xB8
-#define TAB_PRESSED             0x0F
-#define TAB_RELEASED            0x8F
-#define ENTER_PRESSED           0x1C
-#define ENTER_RELEASED          0x9C
-#define BACKSPACE_PRESSED       0x0E
-#define BACKSPACE_RELEASED      0x8E
 #define KEYBOARD_BUF_SIZE       128
+#define KEYBOARD_BUF_CHAR_MAX   127
 
 // Line buffer for keyboard entries
 char keyboard_buf[KEYBOARD_BUF_SIZE];
@@ -37,11 +35,11 @@ int caps_flag;
 
 int alt_flag;
 
-int tab_flag;
-
-int enter_flag;
-
-int backspace_flag;
-
 // Initialize the keyboard by enabling the PIC IRQ
 void init_keyboard();
+
+// Clear keyboard buffer
+void clear_keyboard_buf();
+
+// Handles Keyboard interrupts
+extern void keyboard_handler();

@@ -18,11 +18,5 @@ extern void init_IDT();
 // Handles exceptions thrown by the processor
 extern void exception_handler(int32_t interrupt_vector);
 
-// Handles Keyboard interrupts
-extern void keyboard_handler();
-
-// Handles interrupts from the real-time clock
-extern void RTC_interrupt();
-
 //#endif /* ASM */
 #endif /* _IDT_H */

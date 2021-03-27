@@ -15,13 +15,15 @@ static char* video_mem = (char *)VIDEO;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
- * Function: Clears video memory */
+ * Function: Clears video memory and resets cursor to (0,0) */
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    screen_x = 0;
+    screen_y = 0;
 }
 
 /* Standard printf().
@@ -163,6 +165,25 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+/* void scroll(void);
+ * Inputs: none
+ * Return Value: void
+ *  Function: Scrolls each line on screen up by one line, losing the 0th row and clearing the 24th row*/
+void scroll(void){
+    int i;
+    int j;
+    for(i = 0; i < NUM_ROWS; i++){
+        for(j = 0; j < NUM_COLS; j++){
+            // Blank 24th row
+            if(i == NUM_ROWS - 1)
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1)) = ' ';
+            // Scroll up by copying the below line to current line
+            else    
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (i+1) + j) << 1));
+        }
+    }
+}
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
@@ -171,12 +192,46 @@ void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
-    } else {
+        // If newline is entered while screen is filled, scroll up by one line
+        if(screen_y == NUM_ROWS) {
+            scroll();
+            screen_y = NUM_ROWS - 1;
+        }
+    } 
+    
+    // Backspace case to delete previous char 
+    else if(c == '\b') {
+        //do nothing if we're at (0,0)
+        if (screen_x + screen_y == 0)
+            return;
+        
+        // Set coordinates to previous index
+        screen_x--;
+        
+        // Go back to previous line (screen_y) if needed
+        if(screen_x == -1) {
+            screen_x = NUM_COLS - 1;
+            screen_y--;
+        }
+
+        // Blank out previous char in vidmem
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    } 
+    
+    else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        if (screen_x == NUM_COLS) {
+            screen_x = 0;
+            screen_y++;
+        }
+        // If screen gets filled after char gets printed, scroll up by one line
+        if(screen_y == NUM_ROWS) {
+            scroll();
+            screen_y = NUM_ROWS - 1;
+        } 
     }
 }
 
