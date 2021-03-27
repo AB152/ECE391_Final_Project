@@ -178,7 +178,7 @@ int test_RTC_write(){
 
 /* Test suite entry point */
 void launch_tests(){
-	clear();
+	//clear();
 	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
 	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 

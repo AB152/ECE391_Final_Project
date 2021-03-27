@@ -8,7 +8,9 @@
 #include "types.h"
 
 int32_t printf(int8_t *format, ...);
-void scroll(void);      // Scroll each line on screen up by one line
+void enable_cursor(void);               // Enables VGA text-mode cursor
+void update_cursor(int x, int y);       // Updates VGA text-mode cursor position
+void scroll(void);                      // Scroll each line on screen up by one line
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);

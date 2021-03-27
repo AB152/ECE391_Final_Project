@@ -165,6 +165,37 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+/* void enable_cursor(void)
+ * Inputs: none
+ * Return Value: void
+ *   Function: Enables VGA text-mode cursor by manipulating VGA register values
+ *   See link: (https://wiki.osdev.org/Text_Mode_Cursor) */
+void enable_cursor(void) {
+    // Set cursor scanline start
+    outb(0x0A, 0x3D4);
+	outb((inb(0x3D5) & 0xC0) | 0x00, 0x3D5);
+ 
+    // Set cursor scanline end
+	outb(0x0B, 0x3D4);
+	outb((inb(0x3D5) & 0xE0) | NUM_ROWS, 0x3D5);
+}
+
+/* void update_cursor(int, int)
+ * Inputs: (x, y) -- coordinate of screen to move cursor to
+ * Return Value: void
+ *    Function: Moves text-mode cursor to (x,y) of screen 
+ *    See link: (https://wiki.osdev.org/Text_Mode_Cursor) */
+void update_cursor(int x, int y)
+{
+	uint16_t pos = y * NUM_COLS + x;
+ 
+    // Set corresponding VGA register bits to update cursor
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
+
 /* void scroll(void);
  * Inputs: none
  * Return Value: void
@@ -233,6 +264,8 @@ void putc(uint8_t c) {
             screen_y = NUM_ROWS - 1;
         } 
     }
+    // Update cursor position (might be more efficient to only do this after a whole buffer is printed)
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
