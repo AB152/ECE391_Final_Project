@@ -3,16 +3,17 @@
 
 #include "types.h"
 
+#define BLOCK_SIZE 4096         //file system memory is divided into 4KB blocks
+#define FNAME_LENGTH  32
 
 typedef struct{ 
-    uint8_t block[4096];    //file system memory is divided into 4KB blocks
-}data_block;
+    uint8_t block[BLOCK_SIZE];    
+}data_block_t;
 
-//
 typedef struct{
     uint32_t index_num[1023];   //holds indices for 1KB of a data block
     uint32_t file_size;         //described in bytes, used for regular files
-}inodes;
+}inode_t;
 
 //first block in file system memory
 typedef struct{
@@ -21,16 +22,23 @@ typedef struct{
     uint32_t num_data_blocks;
     uint8_t reserved[52];   //52B reserved in boot block, Appendix A
     dentry_t dentries[64]; //64B dir entries in boot block, Appendix A
-}boot_block;
+}boot_block_t;
 
 typedef struct{
-    uint8_t fname[32]; //each name consists of up to 32 characters
+    uint8_t fname[FNAME_LENGTH]; 
     uint32_t ftype;
     uint32_t inode;
     uint8_t reserved[24]; //24B reserved in dir entries, Appendix A
 }dentry_t;
 
-extern void init_filesystem();
+//global variables that will keep track of entire file system structure
+data_block_t* data_block;
+inode_t* inode;
+boot_block_t* boot;       
+dentry_t* dir_entry;       
+
+
+extern void init_filesystem(uint32_t start);
 
 /*these file system functions are specified in Appendix A*/
 extern int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
