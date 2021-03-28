@@ -19,7 +19,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
         return -1;
     
     for(i=0;i<boot->num_dentries;i++){      //loop through all dentries
-        //if names match, copy over dentry file name, type, and index node into dentry block
+        /*if names match, copy over dentry file name, type, and index node into dentry block*/
         if(strncmp(&(boot->dentries[i]),fname,FNAME_LENGTH)){     
             strncpy(dentry->fname, boot->dentries[i].fname,FNAME_LENGTH);
             dentry->ftype=boot->dentries[i].ftype;
@@ -37,7 +37,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
     if(index >= boot->num_dentries)    //check if index is out of bounds
         return -1;
 
-    //index is valid, so copy over dentry file name, type, and index node into dentry block
+    /*index is valid, so copy over dentry file name, type, and index node into dentry block*/
     strncpy(dentry->fname, boot->dentries[index].fname,FNAME_LENGTH);
     dentry->ftype=boot->dentries[index].ftype;
     dentry->inode=boot->dentries[index].inode;
