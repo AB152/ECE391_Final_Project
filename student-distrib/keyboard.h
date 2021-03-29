@@ -21,11 +21,17 @@
 // Line buffer for keyboard entries
 char keyboard_buf[KEYBOARD_BUF_SIZE];
 
+// Holds the arg "n_bytes" passed into terminal_read
+int terminal_buf_n_bytes;
+
 // Keyboard buffer index to keep track of buffer pos
 int keyboard_buf_i;
 
 // Tracks if enter was pressed so terminal_read can continue
 volatile int enter_flag;
+
+// Flag to reset keyboard buffer
+int should_clear;
 
 // Keyboard flags
 int left_shift_flag;

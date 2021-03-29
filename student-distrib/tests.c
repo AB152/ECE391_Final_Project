@@ -163,11 +163,11 @@ int read_file_by_name(){
 	(void)read_dentry_by_name((uint8_t*)fname, &dentry);
 
 	index=dentry.inode;
-	// finode=(inode_t*)boot+BLOCK_SIZE*(index+1);
-	// length=finode->file_size;
+	finode=(inode_t*)boot+BLOCK_SIZE*(index+1);
+	length=finode->file_size;
 
-	nbytes=read_data(index,0,buffer,10);
-	terminal_write((char*)buffer, nbytes);
+	nbytes=read_data(index,0,buffer,length);
+	terminal_write(NULL, (char*)buffer, nbytes);
 
 	return PASS;
 }
@@ -222,6 +222,9 @@ int test_RTC_write(){
 	return PASS;
 }
 
+// Change this definition to test different buffer sizes for the terminal test below
+#define test_term_buf_size 130
+
 /*
  * test_terminal_keyboard
  *    DESCRIPTION: Test terminal and keyboard input for consistency
@@ -232,12 +235,17 @@ int test_RTC_write(){
  */
 int test_terminal_keyboard(){
 	TEST_HEADER;
-	char buf[KEYBOARD_BUF_SIZE];	// Buffer that keyboard_buf should be copied to
+	int32_t fd;				
+	char buf[test_term_buf_size];				// Buffer that keyboard_buf should be copied to 
 	terminal_open();
-	terminal_read(buf);
-	terminal_write(buf, keyboard_buf_i);
+	terminal_read(fd, buf, test_term_buf_size);
+	terminal_write(fd, buf, terminal_buf_i);
 	// If the buffers up until '\n' are not the same, the copy failed
-	if(strncmp(buf, keyboard_buf, keyboard_buf_i))
+	if(strncmp(buf, terminal_buf, terminal_buf_i))
+		return FAIL;
+	terminal_read(fd, buf, test_term_buf_size);
+	terminal_write(fd, buf, terminal_buf_i);
+	if(strncmp(buf, terminal_buf, terminal_buf_i))
 		return FAIL;
 	return PASS;
 }
@@ -263,6 +271,6 @@ void launch_tests(){
 	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
 	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
 	TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
-	TEST_OUTPUT("list_all_files", list_all_files());
-	TEST_OUTPUT("read_file_by_name", read_file_by_name());
+	//TEST_OUTPUT("list_all_files", list_all_files());
+	//TEST_OUTPUT("read_file_by_name", read_file_by_name());
 }
