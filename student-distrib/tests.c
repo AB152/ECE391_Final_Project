@@ -233,11 +233,12 @@ int test_RTC_write(){
 int test_terminal_keyboard(){
 	TEST_HEADER;
 	char buf[KEYBOARD_BUF_SIZE];	// Buffer that keyboard_buf should be copied to
-	int i;							// Loop index to check if buffers are the same
 	terminal_open();
 	terminal_read(buf);
 	terminal_write(buf, keyboard_buf_i);
-	strncmp(buf, keyboard_buf, KEYBOARD_BUF_SIZE);
+	// If the buffers up until '\n' are not the same, the copy failed
+	if(strncmp(buf, keyboard_buf, keyboard_buf_i))
+		return FAIL;
 	return PASS;
 }
 

@@ -24,13 +24,7 @@ char keyboard_buf[KEYBOARD_BUF_SIZE];
 // Keyboard buffer index to keep track of buffer pos
 int keyboard_buf_i;
 
-// Update every time a keyboard interupt has occured, used so that terminal doesn't waste cycles writing to buffer
-volatile int kb_int_flag;
-
-// Tracks to see if the last keystroke was a backspace (so that terminal knows what to do)
-volatile int backspace_flag;
-
-// Tracks if enter was pressed
+// Tracks if enter was pressed so terminal_read can continue
 volatile int enter_flag;
 
 // Keyboard flags

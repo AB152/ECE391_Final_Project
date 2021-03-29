@@ -17,8 +17,6 @@
 void init_keyboard(){
     clear_keyboard_buf();
     enable_irq(KEYBOARD_IRQ);
-    kb_int_flag = 0;
-    backspace_flag = 0;
     enter_flag = 0;
     SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
 }
@@ -107,8 +105,7 @@ void keyboard_handler() {
             break;
     }
 
-    backspace_flag = 0;
-
+    // Reset buffer if enter was pressed in the last interrupt
     if(enter_flag) {
         enter_flag = 0;
         clear_keyboard_buf();
@@ -124,13 +121,8 @@ void keyboard_handler() {
     // Convert scan code to ASCII equivalent
     char key_pressed = scan_code_to_ascii[scan_code];
 
-    // Set change flag so the terminal knows that a keyboard interrupt occurred
-    kb_int_flag = 1;
-
     // Backspace pressed: delete last char if buffer isn't empty, then return from interrupt
     if(key_pressed == '\b') {
-        backspace_flag = 1;
-
         if(keyboard_buf_i > 0) {
             keyboard_buf_i--;
             keyboard_buf[keyboard_buf_i] = 0;
@@ -143,6 +135,7 @@ void keyboard_handler() {
     // If enter pressed, print newline, have terminal read keyboard_buf, and return from interrupt
     if(key_pressed == '\n') {
         keyboard_buf[keyboard_buf_i] = key_pressed;
+        keyboard_buf_i++;
         enter_flag = 1;
         putc('\n');
         send_eoi(KEYBOARD_IRQ);

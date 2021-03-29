@@ -7,9 +7,6 @@
 
 #include "keyboard.h"
 
-// Buffer to read from keyboard_buffer
-char terminal_buf[KEYBOARD_BUF_SIZE];
-
 // Initalizes terminal
 int terminal_open();
 

@@ -14,10 +14,6 @@
  *    SIDE EFFECTS: Initializes all terminal-related vars
  */
 int terminal_open() {
-    int i;
-    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        terminal_buf[i] = (char)0;
-    }
     return 0;
 }
 
@@ -30,10 +26,6 @@ int terminal_open() {
  *    SIDE EFFECTS: Clears all terminal-related vars
  */
 int terminal_close() {
-    int i;
-    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        terminal_buf[i] = (char)0;
-    }
     return 0;
 }
 
@@ -47,23 +39,17 @@ int terminal_close() {
  */
 int terminal_read(char * buf) {
     
-    char curr = 0;  // Holds current keystroke from keyboard buffer
-    
     // NULL check input and return 0 if NULL to signify no bytes read
     if(buf == 0)
         return 0; 
 
-    // Copy keystroke into buf (breaking only on '\n')
-    while(!enter_flag) {
-        // If a keyboard interrupt occurred, put keystroke char into user buf.
-        if(kb_int_flag) {
-            strncpy((int8_t *)buf, (int8_t *)keyboard_buf, KEYBOARD_BUF_SIZE);
-        }
-        // Acknowledge keyboard interrupt by resetting flag
-        kb_int_flag = 0;
-    }
+    // Block until enter ('\n') has been pressed
+    while(!enter_flag);
 
-    // Return loop index, which is the same as the number of bytes read from buffer including '\n'
+    // Copy keyboard_buf into input buf (only copy until '\n')
+    (void)strncpy((int8_t *)buf, (int8_t *)keyboard_buf, keyboard_buf_i);
+
+    // Return buffer index, which is the same as the number of bytes read from keyboard_buf including '\n'
     return keyboard_buf_i;
 }
 
