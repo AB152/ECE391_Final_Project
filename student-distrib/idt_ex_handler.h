@@ -4,6 +4,8 @@
 #ifndef ASM
 
 #include "idt.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 /*
 * implement assembly linkage for all relevant exceptions 

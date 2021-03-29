@@ -2,7 +2,6 @@
  * vim:ts=4 noexpandtab
  */
 
-
 #include "idt.h"
 
 #include "idt_ex_handler.h"
@@ -63,14 +62,14 @@ void init_IDT(){
         if(i == 0x80)
             next_entry.dpl = 0x03;              // System calls should always have user level DPL (ring 3)
 
-        // What do we do for val[2] in the union?
+        // Turns out that the union means that either val or the struct can be used to represent the bits
 
         // Populate IDT vector with new entry
-        idt[i] = next_entry;    }
+        idt[i] = next_entry;    
+    }
 
     /*
-    * enter in exceptions and devices into the appropriate indices of the IDT table
-    * IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
+    * enter in exceptions into the appropriate indices of the IDT table
     */
     SET_IDT_ENTRY(idt[0], &divide_by_zero);             //exception 0
     SET_IDT_ENTRY(idt[1], &debug);                      //exception 1
@@ -92,10 +91,9 @@ void init_IDT(){
     SET_IDT_ENTRY(idt[18], &machine_check);             //exception 18
     SET_IDT_ENTRY(idt[19], &simd_floating_point);       //exception 19
 
-    SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
-    SET_IDT_ENTRY(idt[0x28], &RTC_processor);             //index 28 of IDT reserved for RTC
-
-
+    // IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
+    // Moved keyboard set_idt_entry to init_keyboard in keyboard.c
+    // Moved RTC set_idt_entry to init_RTC in rtc.c
 }
 
 // Handles interrupt (print error message and other relevant items like regs)
@@ -162,54 +160,3 @@ void exception_handler(int32_t interrupt_vector){
             while(1);
     }
 }
-
-
-void keyboard_handler(){
-    /*scan_code stores the hex value of the key that is stored in the keyboard port*/
-    // int num_letters_ascii[] = {
-    // 0, 0, 49, 50, 51, 52, 53, 54, 55, 56,
-    // 57, 48, 0, 0, 0, 0, 113, 119, 101, 114,
-    // 116, 121, 117, 105, 111, 112, 0, 0, 0, 0,
-    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 0,
-    // 0, 0, 0, 0, 122, 120, 99, 118, 98, 110,
-    // 109
-    // };
-    int num_letters_ascii[] = {
-    0, 0, '1', '2', '3', '4', '5', '6', '7', '8',
-    '9', '0', 0, 0, 0, 0, 'q', 'w', 'e', 'r',
-    't', 'y', 'u', 'i', 'o', 'p', 0, 0, 0, 0,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 0,
-    0, 0 ,0 , 0, 'z', 'x', 'c', 'v', 'b', 'n',
-    'm'
-    
-    //"unknown", "escape", "1", "2", ""
-    };
-    int scan_code = inb(KEYBOARD_PORT);
-    // outb((char) num_letters_ascii[scan_code], 0x60);
-    char key_pressed=num_letters_ascii[scan_code];
-    // CALL ITOA HERE???
-    putc(key_pressed);
-    send_eoi(0x01);         //IRQ number for keyboard
-}
-
-/*
- * RTC_interrupt
- *    DESCRIPTION: RTC register C needs to be read, so interupts will happen again
- *    INPUTS: none
- *    OUTPUTS: none
- *    RETURNS: none
- *    SIDE EFFECTS: set RTC_int to 1
- *    NOTES: See OSDev links in .h file to understand macros
- */ 
-void RTC_interrupt(){
-    cli();
-    // Possible space to put test_interrupts() function.
-    outb(REGISTER_C, RTC_PORT);	    // select register C
-    inb(CMOS_PORT);		            // just throw away contents
-    //RTC_int = 1;                    // RTC interupt has occured
-    
-    send_eoi(RTC_IRQ);
-    //test_interrupts();
-    sti();
-}
-

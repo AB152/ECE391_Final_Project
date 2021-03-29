@@ -39,6 +39,7 @@
 */
 
 divide_by_zero: #0
+    cli
     pushal              #saves all registers onto stack
     pushfl               #save flags
     pushl $0xFFFFFFFF         #prep for exception_processor arg
@@ -46,6 +47,7 @@ divide_by_zero: #0
     jmp exception_processor
 
 debug: #1               #for the rest of the exceptions, check DBZ exception for comments
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFFE
@@ -53,6 +55,7 @@ debug: #1               #for the rest of the exceptions, check DBZ exception for
     jmp exception_processor
 
 nm_interrupt: #2
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFFD
@@ -60,6 +63,7 @@ nm_interrupt: #2
     jmp exception_processor
 
 breakpoint: #3
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFFC
@@ -67,6 +71,7 @@ breakpoint: #3
     jmp exception_processor
 
 overflow: #4
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFFB
@@ -74,6 +79,7 @@ overflow: #4
     jmp exception_processor
 
 br_exceeded: #5
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFFA
@@ -81,6 +87,7 @@ br_exceeded: #5
     jmp exception_processor
 
 inv_opcode: #6
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF9
@@ -88,6 +95,7 @@ inv_opcode: #6
     jmp exception_processor
 
 device_na: #7
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF8
@@ -95,6 +103,7 @@ device_na: #7
     jmp exception_processor
 
 double_fault: #8
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF7
@@ -102,6 +111,7 @@ double_fault: #8
     jmp exception_processor
 
 cp_seg_overrun: #9
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF6
@@ -109,6 +119,7 @@ cp_seg_overrun: #9
     jmp exception_processor
 
 inv_tss: #10
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF5
@@ -116,6 +127,7 @@ inv_tss: #10
     jmp exception_processor
 
 seg_not_present: #11
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF4
@@ -123,6 +135,7 @@ seg_not_present: #11
     jmp exception_processor
 
 stack_fault: #12
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF3
@@ -130,6 +143,7 @@ stack_fault: #12
     jmp exception_processor
 
 gen_protection: #13
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF2
@@ -137,6 +151,7 @@ gen_protection: #13
     jmp exception_processor
 
 page_fault: #14
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFF1
@@ -144,6 +159,7 @@ page_fault: #14
     jmp exception_processor
 
 fpu_floating_point: #16
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFEF
@@ -151,6 +167,7 @@ fpu_floating_point: #16
     jmp exception_processor
 
 alignment_check: #17
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFEE
@@ -158,6 +175,7 @@ alignment_check: #17
     jmp exception_processor
 
 machine_check: #18
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFED
@@ -165,6 +183,7 @@ machine_check: #18
     jmp exception_processor
 
 simd_floating_point: #19
+    cli
     pushal
     pushfl               #save flags
     pushl $0xFFFFFFEC
@@ -177,16 +196,21 @@ exception_processor:            #passes interrupt vector into exception_handler
     /* ret_from_intr below*/
     popfl                       #restore all registers and flags
     popal
+    sti
     iret
 
 keyboard_processor:             #once keyboard interrupt occurs, call keyboard handler
+    cli
     pushal 
     call keyboard_handler
-    popal 
+    popal
+    sti 
     iret 
 
 RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt handler
+    cli
     pushal 
     call RTC_interrupt
-    popal 
+    popal
+    sti 
     iret 
