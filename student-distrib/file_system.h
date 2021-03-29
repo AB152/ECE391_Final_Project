@@ -11,8 +11,8 @@ typedef struct{
 }data_block_t;
 
 typedef struct{
-    uint32_t index_num[1023];   //holds max data block index (1KB)
     uint32_t file_size;         //described in bytes, used for regular files
+    uint32_t index_num[1023];   //holds max data block index (1KB)
 }inode_t;
 
 typedef struct{
@@ -28,7 +28,7 @@ typedef struct{
     uint32_t num_inodes;
     uint32_t num_data_blocks;
     uint8_t reserved[52];   //52B reserved in boot block, Appendix A
-    dentry_t dentries[64]; //64B dir entries in boot block, Appendix A
+    dentry_t dentries[63]; //64B dir entries in boot block, Appendix A
 }boot_block_t;
 
 
