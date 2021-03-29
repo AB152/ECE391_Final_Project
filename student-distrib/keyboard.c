@@ -105,9 +105,10 @@ void keyboard_handler() {
             break;
     }
 
-    // Reset buffer if enter was pressed in the last interrupt
-    if(enter_flag) {
+    // If enter was pressed, the keyboard buffer should be cleared
+    if(should_clear) {
         enter_flag = 0;
+        should_clear = 0;
         clear_keyboard_buf();
     }
 
@@ -132,11 +133,12 @@ void keyboard_handler() {
         return;
     }
     
-    // If enter pressed, print newline, have terminal read keyboard_buf, and return from interrupt
+    // If enter pressed, print newline, set enter_flag for terminal, mark buf for clear, and return from interrupt
     if(key_pressed == '\n') {
         keyboard_buf[keyboard_buf_i] = key_pressed;
         keyboard_buf_i++;
         enter_flag = 1;
+        should_clear = 1;
         putc('\n');
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -145,7 +147,13 @@ void keyboard_handler() {
     // Ctrl + l and Ctrl + L clears screen and prints keyboard buffer again
     if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
         clear();
-        terminal_write(keyboard_buf, keyboard_buf_i);
+        terminal_write(NULL, keyboard_buf, keyboard_buf_i);
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
+    // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press
+    if(keyboard_buf_i == KEYBOARD_BUF_CHAR_MAX || keyboard_buf_i == terminal_buf_n_bytes - 1) {
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -160,7 +168,7 @@ void keyboard_handler() {
     if(key_pressed == '\t') {
         // Tab = 8 spaces, but clip if overflow
         for(temp_i = 0; temp_i < 8; temp_i++) {
-            if(keyboard_buf_i < KEYBOARD_BUF_CHAR_MAX) {
+            if(keyboard_buf_i < KEYBOARD_BUF_CHAR_MAX && keyboard_buf_i < terminal_buf_n_bytes - 1) {
                 keyboard_buf[keyboard_buf_i] = ' ';
                 keyboard_buf_i++;
                 putc(' ');
@@ -168,12 +176,6 @@ void keyboard_handler() {
             else 
                 break;
         }
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-
-    // If entering a char will overflow buffer (only 127 chars + '\n' allowed), ignore the key press
-    if(keyboard_buf_i == KEYBOARD_BUF_CHAR_MAX) {
         send_eoi(KEYBOARD_IRQ);
         return;
     }

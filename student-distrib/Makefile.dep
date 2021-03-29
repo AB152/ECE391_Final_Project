@@ -13,6 +13,6 @@ lib.o: lib.c lib.h types.h
 paging.o: paging.c paging.h x86_desc.h types.h
 rtc.o: rtc.c rtc.h lib.h types.h idt_ex_handler.h idt.h x86_desc.h \
   keyboard.h i8259.h
-terminal.o: terminal.c terminal.h keyboard.h lib.h types.h
+terminal.o: terminal.c terminal.h keyboard.h types.h lib.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h file_system.h \
   terminal.h keyboard.h
