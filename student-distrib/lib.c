@@ -171,13 +171,13 @@ int32_t puts(int8_t* s) {
  *   Function: Enables VGA text-mode cursor by manipulating VGA register values
  *   See link: (https://wiki.osdev.org/Text_Mode_Cursor) */
 void enable_cursor(void) {
-    // Set cursor scanline start
+    // Set cursor scanline start in VGA Misc. Output register
     outb(0x0A, 0x3D4);
-	outb((inb(0x3D5) & 0xC0) | 0x00, 0x3D5);
+	outb((inb(0x3D5) & 0xC0) | 0x00, 0x3D5);    // Bitmask register to set scan line start at 0
  
     // Set cursor scanline end
 	outb(0x0B, 0x3D4);
-	outb((inb(0x3D5) & 0xE0) | NUM_ROWS, 0x3D5);
+	outb((inb(0x3D5) & 0xE0) | NUM_ROWS, 0x3D5); // Bitmask register to set scan line end at NUM_ROWS
 }
 
 /* void update_cursor(int, int)
@@ -191,9 +191,9 @@ void update_cursor(int x, int y)
  
     // Set corresponding VGA register bits to update cursor
 	outb(0x0F, 0x3D4);
-	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);            // Bitmask and update x-coordinate
 	outb(0x0E, 0x3D4);
-	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);     // Bitmask and update y-coordinate
 }
 
 /* void scroll(void);
@@ -557,8 +557,10 @@ int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
  * Return Value: void
  * Function: increments video memory. To be used to test rtc */
 void test_interrupts(void) {
-    int32_t i;
+    /*int32_t i;
+    
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
-    }
+    } */
+    putc('1');      // Changed so that a 1 is put to the screen every interrupt
 }

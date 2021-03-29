@@ -49,6 +49,7 @@ void RTC_interrupt(){
     RTC_int = 1;                    // RTC interupt has occured
     
     send_eoi(RTC_IRQ);
+    
     // Possible space to put test_interrupts() function.
     //test_interrupts();
 }
@@ -97,7 +98,7 @@ int RTC_read() {
  *    OUTPUTS: none
  *    RETURNS: 0 if successful, -1 if input is not a power of 2 or is invalid
  *    SIDE EFFECTS: Changes RTC frequency to input value
- *    NOTES: none
+ *    NOTES: Input cannot surpass 1024, check is at line 133
  */
 int RTC_write(uint32_t * buf) {
     uint32_t freq;          // Hold desired RTC frequency

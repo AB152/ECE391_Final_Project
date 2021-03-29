@@ -40,36 +40,39 @@ int terminal_close() {
 /*
  * terminal_read
  *    DESCRIPTION: Reads from the buffer 
- *    INPUTS: buf -- ptr to keyboard buffer 
+ *    INPUTS: buf -- ptr to output buffer that we copy keyboard_buf to 
  *    OUTPUTS: copies buf to terminal_buf
  *    RETURN VALUE: Number of bytes written
- *    SIDE EFFECTS: Clears and Overwrites previous buffer
+ *    SIDE EFFECTS: Writes to buffer pointed to by input
  */
 int terminal_read(char * buf) {
-    int i;          // Loop index
-    char curr;      // Next char in keyboard_buf
-
+    
+    char curr = 0;  // Holds current keystroke from keyboard buffer
+    
     // NULL check input and return 0 if NULL to signify no bytes read
     if(buf == 0)
         return 0; 
 
-    // Clear terminal buffer
-    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        terminal_buf[i] = 0;
+    // Copy keystroke into buf (breaking only on '\n')
+    while(!enter_flag) {
+        // If a keyboard interrupt occurred, put keystroke char into user buf.
+        if(kb_int_flag) {
+            // If backspace pressed
+            if(backspace_flag == 1)
+                buf[keyboard_buf_i + 1] = 0;
+            else {
+                curr = keyboard_buf[keyboard_buf_i - 1];
+                buf[keyboard_buf_i - 1] = curr;
+            }
+            // Acknowledge keyboard interrupt by resetting flag
+            kb_int_flag = 0;
+        }
     }
+    
+    enter_flag = 0;
 
-    // Copy keyboard_buf until '\n'
-    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        curr = buf[i];
-        
-        // Break from loop if '\n'
-        if(curr == '\n')
-            break;
-
-        terminal_buf[i] = curr;
-    }
-    // Return loop index, which is the same as the number of bytes read from buffer not including '\n'
-    return i;
+    // Return loop index, which is the same as the number of bytes read from buffer including '\n'
+    return keyboard_buf_i;
 }
 
 /*
@@ -78,12 +81,18 @@ int terminal_read(char * buf) {
  *    INPUTS: buf -- bytes to write to screen
  *    OUTPUTS: none
  *    RETURN VALUE: number of bytes/chars written to screen
- *    SIDE EFFECTS: writes to video memory using puts
+ *    SIDE EFFECTS: writes to video memory using putc
  */
-int terminal_write(char * buf) {
+int terminal_write(char * buf, int n_bytes) {
+    int i;      // Loop index
+
     // NULL check input
-    if(buf == 0)
+    if(buf == 0 || n_bytes < 0)
         return -1;
-    
-    return puts(buf);
+
+    // Print n_bytes worth of chars
+    for(i = 0; i < n_bytes; i++) {
+        putc(buf[i]);
+    }
+    return i;
 }

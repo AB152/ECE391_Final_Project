@@ -29,17 +29,19 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
         return -1;
 
     int name_length=strlen((int8_t*)fname);
-    if(name_length>FNAME_LENGTH)      //check if name length goes beyond limit
-        return -1;
+    
     
     int i;
     for(i=0;i<boot->num_dentries;i++){      //loop through all dentries
         /*if names match, copy over dentry file name, type, and index node into dentry block*/
-        if(strncmp((int8_t*)&(boot->dentries[i]),(int8_t*)fname,FNAME_LENGTH)){     
-            strncpy((int8_t*)dentry->fname, (int8_t*)boot->dentries[i].fname,FNAME_LENGTH);
-            dentry->ftype=boot->dentries[i].ftype;
-            dentry->inode=boot->dentries[i].inode;
-            return 0;   //successfully copied over, return 0
+        if(!strncmp((int8_t*)&(boot->dentries[i]),(int8_t*)fname,FNAME_LENGTH)){   
+            // if(strlen((int8_t*)fname) <= 32){
+                strncpy((int8_t*)dentry->fname, (int8_t*)boot->dentries[i].fname,FNAME_LENGTH);
+                dentry->ftype=boot->dentries[i].ftype;
+                dentry->inode=boot->dentries[i].inode;
+                return 0;   //successfully copied over, return 0
+            // }  
+            
         }
     }
     return -1;  //dentry not found, return -1 
@@ -142,4 +144,3 @@ int32_t open_dir(const uint8_t* dirname){
 int32_t close_dir (int32_t fd){
     return 0;           //closing is always successful
 }
-

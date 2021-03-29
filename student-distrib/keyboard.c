@@ -17,6 +17,9 @@
 void init_keyboard(){
     clear_keyboard_buf();
     enable_irq(KEYBOARD_IRQ);
+    kb_int_flag = 0;
+    backspace_flag = 0;
+    enter_flag = 0;
     SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
 }
 
@@ -104,9 +107,10 @@ void keyboard_handler() {
             break;
     }
 
+    backspace_flag = 0;
 
-    // Ignore key releases (F12 pressed is 0x58, any scan codes greater than that are releases)
-    if(scan_code > 0x58 || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||
+    // Ignore key releases (F1 pressed is 0x3B, any scan codes greater than that are releases)
+    if(scan_code >= 0x3B || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||
         scan_code == LEFT_CTRL_PRESSED || scan_code == LEFT_ALT_PRESSED) {
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -115,8 +119,13 @@ void keyboard_handler() {
     // Convert scan code to ASCII equivalent
     char key_pressed = scan_code_to_ascii[scan_code];
 
+    // Set change flag so the terminal knows that a keyboard interrupt occurred
+    kb_int_flag = 1;
+
     // Backspace pressed: delete last char if buffer isn't empty, then return from interrupt
     if(key_pressed == '\b') {
+        backspace_flag = 1;
+
         if(keyboard_buf_i > 0) {
             keyboard_buf_i--;
             keyboard_buf[keyboard_buf_i] = 0;
@@ -129,8 +138,8 @@ void keyboard_handler() {
     // If enter pressed, print newline, have terminal read keyboard_buf, and return from interrupt
     if(key_pressed == '\n') {
         keyboard_buf[keyboard_buf_i] = key_pressed;
+        enter_flag = 1;
         putc('\n');
-        terminal_read(keyboard_buf);
         clear_keyboard_buf();
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -139,7 +148,7 @@ void keyboard_handler() {
     // Ctrl + l and Ctrl + L clears screen and prints keyboard buffer again
     if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
         clear();
-        terminal_write(keyboard_buf);
+        terminal_write(keyboard_buf, keyboard_buf_i);
         send_eoi(KEYBOARD_IRQ);
         return;
     }

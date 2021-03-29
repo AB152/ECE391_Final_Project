@@ -2,6 +2,8 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "rtc.h"
+#include "file_system.h"
+#include "terminal.h"
 
 #define PASS 1
 #define FAIL 0
@@ -120,6 +122,57 @@ int test_no_page_fault(){
 
 /* Checkpoint 2 (MP3.2) tests */
 
+int list_all_files(){
+	char * names[] = {".", "sigtest", "shell", "grep", "syserr", "rtc", "fish", "counter",
+    "pingpong", "cat", "frame0.txt", "verylargetextwithverylongname.txt", "ls", "testprint",
+	"created.txt", "frame1.txt", "hello"};
+	
+	
+	uint32_t i, j;
+	uint32_t num_files=boot->num_dentries;
+	
+	for(i=0; i<num_files; i++){
+		dentry_t dentry;
+		(void)read_dentry_by_name((uint8_t*)names[i], &dentry);
+		printf("file_name: ");
+		for(j=0; j<32; j++){
+			if(dentry.fname[j] == 0)
+				break;
+			putc(dentry.fname[j]);
+		}
+		//printf("%s", (int8_t*)dentry.fname);
+		//printf((uint8_t*)names[i]);
+		//printf(" type: ");
+		//printf(dentry.ftype);
+		printf("\n");
+	}
+	return PASS;
+	
+}
+
+int read_file_by_name(){
+	dentry_t dentry;
+	uint32_t index;
+	int32_t nbytes;
+	uint8_t* buffer;
+	uint32_t length;
+	inode_t* finode;
+	
+	uint8_t* fname= (uint8_t*)"grep";
+
+	(void)read_dentry_by_name((uint8_t*)fname, &dentry);
+
+	index=dentry.inode;
+	// finode=(inode_t*)boot+BLOCK_SIZE*(index+1);
+	// length=finode->file_size;
+
+	nbytes=read_data(index,0,buffer,10);
+	terminal_write((char*)buffer, nbytes);
+
+	return PASS;
+}
+
+
 /*
  * test_RTC_open
  *    DESCRIPTION: Test if we set RTC to 2Hz.
@@ -140,14 +193,16 @@ int test_RTC_open() {
  *    INPUTS: none
  *    OUTPUTS: none
  *    RETURN VALUES: none
- *    SIDE EFFECTS: Should block the system for 3 secs. Look at top row.
+ *    SIDE EFFECTS: Should block the system for 6 secs total and print twelve 1's.
  */
 int test_RTC_read() {
 	TEST_HEADER;
 	int i;
 	for(i = 0; i < 6; i++)
 		RTC_read();
-	printf("This should pop up after 3 secs");
+	printf("Six 1's should've printed, and now we print 6 more");
+	for(i = 0; i < 6; i++)
+		RTC_read();
 	return PASS;
 }
 
@@ -161,9 +216,31 @@ int test_RTC_read() {
  */
 int test_RTC_write(){
 	TEST_HEADER;
-	uint32_t buf = 8192; // try 1024 Hz
+	uint32_t buf = 512; // try 512 Hz
 	if(RTC_write(&buf) == -1)
 		printf("RTC freq %u invalid", buf);
+	return PASS;
+}
+
+/*
+ * test_terminal_keyboard
+ *    DESCRIPTION: Test terminal and keyboard input for consistency
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURN VALUES: none
+ *    SIDE EFFECTS: Should echo keyboard buffer upon hitting enter
+ */
+int test_terminal_keyboard(){
+	TEST_HEADER;
+	char buf[KEYBOARD_BUF_SIZE];	// Buffer that keyboard_buf should be copied to
+	int i;							// Loop index to check if buffers are the same
+	terminal_open();
+	terminal_read(buf);
+	terminal_write(buf, keyboard_buf_i);
+	for(i = 0; i < KEYBOARD_BUF_SIZE; i++){
+		if(buf[i] != keyboard_buf[i])
+			return FAIL;
+	}
 	return PASS;
 }
 
@@ -178,14 +255,16 @@ int test_RTC_write(){
 
 /* Test suite entry point */
 void launch_tests(){
-	//clear();
 	TEST_OUTPUT("idt_test", idt_test());							// Checks descriptor offset field for NULL
 	// launch your tests here
-	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());	// Test opcode exception 
-	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception());  // Test divzero
-	//TEST_OUTPUT("test_no_page_fault", test_no_page_fault());		// Test no page fault
-	//TEST_OUTPUT("test_page_fault", test_page_fault());				// Test page fault
+	//TEST_OUTPUT("test_opcode_exception", test_opcode_exception());
+	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception()); 
+	//TEST_OUTPUT("test_no_page_fault", test_no_page_fault());
+	//TEST_OUTPUT("test_page_fault", test_page_fault());
 	//TEST_OUTPUT("test_RTC_open", test_RTC_open());
 	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
 	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
+	TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
+	// TEST_OUTPUT("list_all_files", list_all_files());
+	// TEST_OUTPUT("read_file_by_name", read_file_by_name());
 }

@@ -20,6 +20,6 @@ int terminal_close();
 int terminal_read(char * buf);
 
 // Writes to the screen from buf and returns num bytes written or -1
-int terminal_write(char * buf);
+int terminal_write(char * buf, int n_bytes);
 
 #endif /* _TERMINAL_H */
