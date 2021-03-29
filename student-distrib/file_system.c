@@ -28,7 +28,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
     if(fname==NULL||dentry==NULL)   //check for invalid pointers
         return -1;
 
-    int name_length=strlen((int8_t*)fname);
+    //int name_length=strlen((int8_t*)fname);
     
     
     int i;
@@ -82,22 +82,22 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
  *    NOTES: See Appendix A
  */ 
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
-    //if(buf==NULL)           //check for invalid pointer
-    //    return -1;
+    if(buf==NULL)           //check for invalid pointer
+        return -1;
+
     if(inode >= boot->num_inodes)      //check if index node is out of bounds
         return -1;
-        
-    inode_t* curr_inode=(fs_inode + inode); //points to the file with inode number inode
+    
+    inode_t* curr_inode=(inode_t*)(&(fs_inode[inode])); //points to the file with inode number inode
 
-    //if(offset >= curr_inode->file_size) //check if offset from start of file is out of bounds
-    //    return -1;
+    if(offset >= curr_inode->file_size) //check if offset from start of file is out of bounds
+        return -1;
+
     int bytes_read;
     data_block_t* curr_data_block;
 
-
     for(bytes_read=0; bytes_read<length; bytes_read++){     //loop through bytes that need to be read
-        printf("FOR_LOOP");
-        if(offset > curr_inode->file_size)     //break if bytes read go out of file bounds
+        if((offset+bytes_read) > curr_inode->file_size)     //break if bytes read go out of file bounds
             break;
         curr_data_block=(data_block_t*)(fs_data_block + (curr_inode->index_num[offset/BLOCK_SIZE])); //finds start of data block of which to read bytes from
         buf[bytes_read]=curr_data_block->block[offset%BLOCK_SIZE];  //copy data into buf

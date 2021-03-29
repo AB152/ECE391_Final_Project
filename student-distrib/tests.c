@@ -176,7 +176,7 @@ int read_file_by_name(){
 	//printf("\n");
 	//printf("%d \n", index);
 	//printf("%s \n", dentry.fname);
-	terminal_write((char*)buffer, nbytes);
+	terminal_write(NULL, (char*)buffer, nbytes);
 
 
 	return PASS;
@@ -277,11 +277,10 @@ void launch_tests(){
 	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception()); 
 	//TEST_OUTPUT("test_no_page_fault", test_no_page_fault());
 	//TEST_OUTPUT("test_page_fault", test_page_fault());
-	//TEST_OUTPUT("test_RTC_open", test_RTC_open());
-	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
-	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
+	TEST_OUTPUT("test_RTC_open", test_RTC_open());
+	TEST_OUTPUT("test_RTC_read", test_RTC_read());
+	TEST_OUTPUT("test_RTC_write", test_RTC_write());
 	//TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
 	//TEST_OUTPUT("list_all_files", list_all_files());
-	TEST_OUTPUT("read_file_by_name", read_file_by_name());
-	//TEST_OUTPUT("list_all_files", list_all_files());
+	//TEST_OUTPUT("read_file_by_name", read_file_by_name());
 }
