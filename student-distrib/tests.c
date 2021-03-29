@@ -126,8 +126,7 @@ int list_all_files(){
 	char * names[] = {".", "sigtest", "shell", "grep", "syserr", "rtc", "fish", "counter",
     "pingpong", "cat", "frame0.txt", "verylargetextwithverylongname.txt", "ls", "testprint",
 	"created.txt", "frame1.txt", "hello"};
-	
-	
+		
 	uint32_t i, j;
 	uint32_t num_files=boot->num_dentries;
 	
@@ -154,20 +153,31 @@ int read_file_by_name(){
 	dentry_t dentry;
 	uint32_t index;
 	int32_t nbytes;
-	uint8_t* buffer;
+	uint8_t buffer[10];
 	uint32_t length;
 	inode_t* finode;
-	
-	uint8_t* fname= (uint8_t*)"grep";
+	int i;
+
+	uint8_t* fname= (uint8_t*)"frame0.txt";
 
 	(void)read_dentry_by_name((uint8_t*)fname, &dentry);
 
 	index=dentry.inode;
-	// finode=(inode_t*)boot+BLOCK_SIZE*(index+1);
-	// length=finode->file_size;
+	finode=(inode_t*)(boot+BLOCK_SIZE*(index+1));
+	length=finode->file_size;
 
-	nbytes=read_data(index,0,buffer,10);
+	for(i = 0; i < 60; i++){
+		buffer[i] = 0x34;
+	}
+
+	nbytes=read_data(index,0,buffer,60);
+	//printf("\n");
+	//printf("%x", *((int *)(buffer)));
+	//printf("\n");
+	//printf("%d \n", index);
+	//printf("%s \n", dentry.fname);
 	terminal_write((char*)buffer, nbytes);
+
 
 	return PASS;
 }
@@ -262,7 +272,8 @@ void launch_tests(){
 	//TEST_OUTPUT("test_RTC_open", test_RTC_open());
 	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
 	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
-	TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
-	TEST_OUTPUT("list_all_files", list_all_files());
+	//TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
+	//TEST_OUTPUT("list_all_files", list_all_files());
 	TEST_OUTPUT("read_file_by_name", read_file_by_name());
+	//TEST_OUTPUT("list_all_files", list_all_files());
 }

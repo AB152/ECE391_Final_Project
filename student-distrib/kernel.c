@@ -155,7 +155,7 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Enable paging */
-    // init_paging();
+    //init_paging();
 
     // Initialize RTC interrupts
     init_RTC();
