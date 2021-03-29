@@ -15,6 +15,13 @@ typedef struct{
     uint32_t file_size;         //described in bytes, used for regular files
 }inode_t;
 
+typedef struct{
+    uint8_t fname[FNAME_LENGTH]; 
+    uint32_t ftype;
+    uint32_t inode;
+    uint8_t reserved[24]; //24B reserved in dir entries, Appendix A
+}dentry_t;
+
 /*first block in file system memory*/
 typedef struct{
     uint32_t num_dentries;
@@ -24,12 +31,6 @@ typedef struct{
     dentry_t dentries[64]; //64B dir entries in boot block, Appendix A
 }boot_block_t;
 
-typedef struct{
-    uint8_t fname[FNAME_LENGTH]; 
-    uint32_t ftype;
-    uint32_t inode;
-    uint8_t reserved[24]; //24B reserved in dir entries, Appendix A
-}dentry_t;
 
 /*global variables that will keep track of entire file system structure*/
 data_block_t* fs_data_block;

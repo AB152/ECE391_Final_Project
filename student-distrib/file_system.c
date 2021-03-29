@@ -13,15 +13,15 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
     if(fname==NULL||dentry==NULL)   //check for invalid pointers
         return -1;
 
-    int name_length=strlen(fname);
+    int name_length=strlen((int8_t*)fname);
     if(name_length>FNAME_LENGTH)      //check if name length goes beyond limit
         return -1;
     
     int i;
     for(i=0;i<boot->num_dentries;i++){      //loop through all dentries
         /*if names match, copy over dentry file name, type, and index node into dentry block*/
-        if(strncmp(&(boot->dentries[i]),fname,FNAME_LENGTH)){     
-            strncpy(dentry->fname, boot->dentries[i].fname,FNAME_LENGTH);
+        if(strncmp((int8_t*)&(boot->dentries[i]),(int8_t*)fname,FNAME_LENGTH)){     
+            strncpy((int8_t*)dentry->fname, (int8_t*)boot->dentries[i].fname,FNAME_LENGTH);
             dentry->ftype=boot->dentries[i].ftype;
             dentry->inode=boot->dentries[i].inode;
             return 0;   //successfully copied over, return 0
@@ -38,7 +38,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
         return -1;
 
     /*index is valid, so copy over dentry file name, type, and index node into dentry block*/
-    strncpy(dentry->fname, boot->dentries[index].fname,FNAME_LENGTH);
+    strncpy((int8_t*)dentry->fname, (int8_t*)boot->dentries[index].fname,FNAME_LENGTH);
     dentry->ftype=boot->dentries[index].ftype;
     dentry->inode=boot->dentries[index].inode;
     
@@ -70,8 +70,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     return bytes_read;
 }
 
-int32_t read_file(uint32_t inode, uint32_t offset, void* buf, int32_t nbytes){
-    return read_data(inode, offset, (uint8_t*)buf, nbytes);
+int32_t read_file(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
+    return read_data(inode, offset, buf, nbytes);
 }
 
 int32_t write_file(int32_t fd, const void* buf, int32_t nbytes){

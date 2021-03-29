@@ -1,6 +1,7 @@
 boot.o: boot.S multiboot.h x86_desc.h types.h
 idt_ex_handler.o: idt_ex_handler.S idt_ex_handler.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
+file_system.o: file_system.c file_system.h types.h lib.h
 i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c idt.h lib.h types.h x86_desc.h idt_ex_handler.h keyboard.h \
   rtc.h i8259.h
