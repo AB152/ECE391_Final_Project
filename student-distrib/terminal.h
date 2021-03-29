@@ -15,7 +15,7 @@ char terminal_buf[KEYBOARD_BUF_SIZE];
 int terminal_buf_i;
 
 // Initalizes terminal
-int terminal_open();
+int terminal_open(int32_t fd);
 
 // Clear terminal specific vars
 int terminal_close(int32_t fd);

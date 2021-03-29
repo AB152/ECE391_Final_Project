@@ -63,7 +63,7 @@ void RTC_interrupt(){
  *    SIDE EFFECTS: Sets RTC frequency to 2 Hz
  *    NOTES: See OSDev links in .h file to understand macros
  */
-int RTC_open() {
+int RTC_open(int32_t fd) {
 
     // need to change frequency to 2Hz
 
@@ -85,7 +85,7 @@ int RTC_open() {
  *    SIDE EFFECTS: Blocks system until RTC interrupt
  *    NOTES: none
  */
-int RTC_read() {
+int RTC_read(int32_t fd, uint32_t * buf, int32_t n_bytes) {
     while(!RTC_int);    // Block until flag is set by interrupt handler
     RTC_int = 0;        // Reset RTC flag
     return 0;
@@ -100,7 +100,7 @@ int RTC_read() {
  *    SIDE EFFECTS: Changes RTC frequency to input value
  *    NOTES: Input cannot surpass 1024, check is at line 133
  */
-int RTC_write(uint32_t * buf) {
+int RTC_write(int32_t fd, uint32_t * buf, int32_t n_bytes) {
     uint32_t freq;          // Hold desired RTC frequency
     uint8_t index;          // Holds index of where the 1 bit is in the buffer
     uint8_t flag = 0;       // Checks how many bits of input buffer are set
@@ -174,6 +174,6 @@ int RTC_write(uint32_t * buf) {
  *    SIDE EFFECTS: none?
  *    NOTES: none
  */
-int RTC_close() {
+int RTC_close(int32_t fd) {
     return 0;
 }

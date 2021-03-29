@@ -73,9 +73,12 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
 /*  
  * read_data
  *    DESCRIPTION: Finds and copies over dentry info into a dentry block based on given index
- *    INPUTS: index (to find), dentry (to copy over to)
- *    OUTPUTS: 0 for success, -1 for fail
- *    SIDE EFFECTS: Dentry block is initialized with info upon success
+ *    INPUTS: inode -- file inode to read
+ *            offset -- offset to start reading from
+ *            buf -- output buffer to write file data to
+ *            nbytes -- number of bytes to read from file
+ *    OUTPUTS: number of bytes read
+ *    SIDE EFFECTS: buf holds file data
  *    NOTES: See Appendix A
  */ 
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
@@ -103,22 +106,69 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     return bytes_read;
 }
 
+
+/*  
+ * read_file
+ *    DESCRIPTION: Finds and copies over dentry info into a dentry block based on given index
+ *    INPUTS: inode -- file inode to read
+ *            offset -- offset to start reading from
+ *            buf -- output buffer to write file data to
+ *            nbytes -- number of bytes to read from file
+ *    OUTPUTS: number of bytes read
+ *    SIDE EFFECTS: buf holds file data
+ *    NOTES: See Appendix A
+ */
 int32_t read_file(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
     return read_data(inode, offset, buf, nbytes);
 }
 
+/*  
+ * write_file
+ *    DESCRIPTION: Does nothing due to read-only file system
+ *    INPUTS: none
+ *    OUTPUTS: Always -1
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t write_file(int32_t fd, const void* buf, int32_t nbytes){
     return -1;          //file system is read-only so writing always fails
 }
 
+/*  
+ * open_file
+ *    DESCRIPTION: Does nothing for now
+ *    INPUTS: filename -- pointer to file
+ *    OUTPUTS: Always 0
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t open_file(const uint8_t* filename){
     return 0;           //always success, no need to check for name validity
 }
 
+/*  
+ * close_file
+ *    DESCRIPTION: Does nothing for now
+ *    INPUTS: fd -- file descriptor
+ *    OUTPUTS: Always 0
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t close_file (int32_t fd){
     return 0;           //closing is always successful
 }
 
+/*  
+ * read_dir
+ *    DESCRIPTION: Does nothing for now
+ *    INPUTS: inode -- file inode to read
+ *            offset -- file offset in file system
+ *            buf -- ptr to buffer to write to
+ *            nbytes -- number of bytes to read
+ *    OUTPUTS: writes file names to buf
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t read_dir(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
     if(buf==NULL)       //check for null pointer
         return -1;
@@ -133,14 +183,38 @@ int32_t read_dir(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
     return bytes_read;
 }
 
+/*  
+ * write_dir
+ *    DESCRIPTION: Does nothing for now
+ *    INPUTS: none
+ *    OUTPUTS: Always -1
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes){
     return -1;          //file system is read-only so writing always fails
 }
 
+/*  
+ * open_dir
+ *    DESCRIPTION: Does nothing for now
+ *    INPUTS: dirname -- pointer to directory
+ *    OUTPUTS: Always 0
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t open_dir(const uint8_t* dirname){
     return 0;           //always success, no need to check for name validity
 }
 
+/*  
+ * close_dir
+ *    DESCRIPTION: Does nothing for now
+ *    INPUTS: fd -- file descriptor
+ *    OUTPUTS: Always 0
+ *    SIDE EFFECTS: none
+ *    NOTES: See Appendix A
+ */
 int32_t close_dir (int32_t fd){
     return 0;           //closing is always successful
 }

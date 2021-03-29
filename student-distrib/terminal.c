@@ -13,7 +13,7 @@
  *    RETURN VALUE: Always 0
  *    SIDE EFFECTS: Initializes all terminal-related vars
  */
-int terminal_open() {
+int terminal_open(int32_t fd) {
     int i = 0;
     for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
         terminal_buf[i] = 0;
@@ -44,7 +44,7 @@ int terminal_close(int32_t fd) {
 int terminal_read(int32_t fd, char * buf, int32_t n_bytes) {
     
     // NULL check input and return 0 if NULL to signify no bytes read
-    if(buf == 0 || n_bytes == 0)
+    if(buf == 0 || n_bytes <= 0)
         return 0; 
 
     // Let keyboard know how many bytes the buffer is
@@ -57,13 +57,12 @@ int terminal_read(int32_t fd, char * buf, int32_t n_bytes) {
     (void)strncpy((int8_t *)terminal_buf, (int8_t *)keyboard_buf, n_bytes);
     (void)strncpy((int8_t *)buf, (int8_t *)terminal_buf, n_bytes);
 
-    // Reset so the keyboard buffer can write to its normal size
-    terminal_buf_n_bytes = KEYBOARD_BUF_SIZE;
-
+    // Copy count of chars written from keyboard
     terminal_buf_i = keyboard_buf_i;
 
+    // Reset so the keyboard buffer can write to its normal size
+    terminal_buf_n_bytes = KEYBOARD_BUF_SIZE;
     enter_flag = 0;
-
     clear_keyboard_buf();
 
     // Return keyboard_buf index, which is the same as the number of bytes read from keyboard_buf including '\n'

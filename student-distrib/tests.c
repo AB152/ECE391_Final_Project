@@ -183,7 +183,7 @@ int read_file_by_name(){
  */
 int test_RTC_open() {
 	TEST_HEADER;
-	RTC_open();
+	RTC_open(NULL);
 	return PASS;
 }
 
@@ -199,10 +199,10 @@ int test_RTC_read() {
 	TEST_HEADER;
 	int i;
 	for(i = 0; i < 6; i++)
-		RTC_read();
+		RTC_read(NULL, NULL, NULL);
 	printf("Six 1's should've printed, and now we print 6 more");
 	for(i = 0; i < 6; i++)
-		RTC_read();
+		RTC_read(NULL, NULL, NULL);
 	return PASS;
 }
 
@@ -217,7 +217,7 @@ int test_RTC_read() {
 int test_RTC_write(){
 	TEST_HEADER;
 	uint32_t buf = 512; // try 512 Hz
-	if(RTC_write(&buf) == -1)
+	if(RTC_write(NULL, &buf, NULL) == -1)
 		printf("RTC freq %u invalid", buf);
 	return PASS;
 }
@@ -237,7 +237,7 @@ int test_terminal_keyboard(){
 	TEST_HEADER;
 	int32_t fd;				
 	char buf[test_term_buf_size];				// Buffer that keyboard_buf should be copied to 
-	terminal_open();
+	terminal_open(NULL);
 	terminal_read(fd, buf, test_term_buf_size);
 	terminal_write(fd, buf, terminal_buf_i);
 	// If the buffers up until '\n' are not the same, the copy failed
