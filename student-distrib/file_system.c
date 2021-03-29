@@ -1,7 +1,14 @@
 #include "file_system.h"
 #include "lib.h"
 
-
+/*  
+ * init_filesystem
+ *    DESCRIPTION: Initializes the file system structure based off the given start pointer
+ *    INPUTS: pointer to the start of the file system
+ *    OUTPUTS: NONE
+ *    SIDE EFFECTS: Boot, inode, dentry, and data block global variables are initialized
+ *    NOTES: See Appendix A
+ */ 
 void init_filesystem(uint32_t start){
     boot=(boot_block_t*)start;      //points to starting memory block of file system 
     fs_inode=(inode_t*)(start+BLOCK_SIZE);   //inodes start one block (4KB) after start/boot
@@ -9,6 +16,14 @@ void init_filesystem(uint32_t start){
     fs_data_block=(data_block_t*)(start+BLOCK_SIZE*(boot->num_inodes+1)); //data block starts a block after inode
 }
 
+/*  
+ * read_dentry_by_name
+ *    DESCRIPTION: Finds and copies over dentry info into a dentry block based on file name 
+ *    INPUTS: file name (to find), dentry (to copy over to)
+ *    OUTPUTS: 0 for success, -1 for fail
+ *    SIDE EFFECTS: Dentry block is initialized with info upon success
+ *    NOTES: See Appendix A
+ */ 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
     if(fname==NULL||dentry==NULL)   //check for invalid pointers
         return -1;
@@ -30,6 +45,14 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
     return -1;  //dentry not found, return -1 
 }
 
+/*  
+ * read_dentry_by_index
+ *    DESCRIPTION: Finds and copies over dentry info into a dentry block based on given index
+ *    INPUTS: index (to find), dentry (to copy over to)
+ *    OUTPUTS: 0 for success, -1 for fail
+ *    SIDE EFFECTS: Dentry block is initialized with info upon success
+ *    NOTES: See Appendix A
+ */ 
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
     if(dentry==NULL)   //check for invalid pointer
         return -1;
@@ -45,6 +68,14 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
     return 0;   //successfully copied over, return 0
 }
 
+/*  
+ * read_data
+ *    DESCRIPTION: Finds and copies over dentry info into a dentry block based on given index
+ *    INPUTS: index (to find), dentry (to copy over to)
+ *    OUTPUTS: 0 for success, -1 for fail
+ *    SIDE EFFECTS: Dentry block is initialized with info upon success
+ *    NOTES: See Appendix A
+ */ 
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     if(buf==NULL)           //check for invalid pointer
         return -1;

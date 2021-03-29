@@ -122,6 +122,8 @@ int test_no_page_fault(){
 
 
 /* Checkpoint 2 (MP3.2) tests */
+
+
 /* Checkpoint 3 (MP3.3) tests */
 /* Checkpoint 4 (MP3.4) tests */
 /* Checkpoint 5 (MP3.5) tests */
