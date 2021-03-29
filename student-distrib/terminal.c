@@ -57,19 +57,11 @@ int terminal_read(char * buf) {
     while(!enter_flag) {
         // If a keyboard interrupt occurred, put keystroke char into user buf.
         if(kb_int_flag) {
-            // If backspace pressed
-            if(backspace_flag == 1)
-                buf[keyboard_buf_i + 1] = 0;
-            else {
-                curr = keyboard_buf[keyboard_buf_i - 1];
-                buf[keyboard_buf_i - 1] = curr;
-            }
-            // Acknowledge keyboard interrupt by resetting flag
-            kb_int_flag = 0;
+            strncpy((int8_t *)buf, (int8_t *)keyboard_buf, KEYBOARD_BUF_SIZE);
         }
+        // Acknowledge keyboard interrupt by resetting flag
+        kb_int_flag = 0;
     }
-    
-    enter_flag = 0;
 
     // Return loop index, which is the same as the number of bytes read from buffer including '\n'
     return keyboard_buf_i;

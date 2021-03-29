@@ -109,6 +109,11 @@ void keyboard_handler() {
 
     backspace_flag = 0;
 
+    if(enter_flag) {
+        enter_flag = 0;
+        clear_keyboard_buf();
+    }
+
     // Ignore key releases (F1 pressed is 0x3B, any scan codes greater than that are releases)
     if(scan_code >= 0x3B || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||
         scan_code == LEFT_CTRL_PRESSED || scan_code == LEFT_ALT_PRESSED) {
@@ -140,7 +145,6 @@ void keyboard_handler() {
         keyboard_buf[keyboard_buf_i] = key_pressed;
         enter_flag = 1;
         putc('\n');
-        clear_keyboard_buf();
         send_eoi(KEYBOARD_IRQ);
         return;
     }
