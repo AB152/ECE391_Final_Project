@@ -153,9 +153,9 @@ int read_file_by_name(){
 	dentry_t dentry;
 	uint32_t index;
 	int32_t nbytes;
-	uint8_t buffer[10];
+	uint8_t buffer[512];
 	uint32_t length;
-	inode_t* finode;
+	uint32_t finode;
 	int i;
 
 	uint8_t* fname= (uint8_t*)"frame0.txt";
@@ -163,14 +163,14 @@ int read_file_by_name(){
 	(void)read_dentry_by_name((uint8_t*)fname, &dentry);
 
 	index=dentry.inode;
-	finode=(inode_t*)(boot+BLOCK_SIZE*(index+1));
-	length=finode->file_size;
+	finode=((uint32_t)boot + (BLOCK_SIZE * (index + 1)));
+	length=((inode_t*)finode)->file_size;
 
-	for(i = 0; i < 60; i++){
+	for(i = 0; i < length; i++){
 		buffer[i] = 0x34;
 	}
 
-	nbytes=read_data(index,0,buffer,60);
+	nbytes=read_data(index,0,buffer,length);
 	//printf("\n");
 	//printf("%x", *((int *)(buffer)));
 	//printf("\n");
@@ -277,10 +277,10 @@ void launch_tests(){
 	//TEST_OUTPUT("test_divzero_exception", test_divzero_exception()); 
 	//TEST_OUTPUT("test_no_page_fault", test_no_page_fault());
 	//TEST_OUTPUT("test_page_fault", test_page_fault());
-	TEST_OUTPUT("test_RTC_open", test_RTC_open());
-	TEST_OUTPUT("test_RTC_read", test_RTC_read());
-	TEST_OUTPUT("test_RTC_write", test_RTC_write());
+	//TEST_OUTPUT("test_RTC_open", test_RTC_open());
+	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
+	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
 	//TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
-	//TEST_OUTPUT("list_all_files", list_all_files());
-	//TEST_OUTPUT("read_file_by_name", read_file_by_name());
+	TEST_OUTPUT("list_all_files", list_all_files());
+	TEST_OUTPUT("read_file_by_name", read_file_by_name());
 }

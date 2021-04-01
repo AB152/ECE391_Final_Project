@@ -26,11 +26,11 @@ int terminal_open(int32_t fd) {
  *    DESCRIPTION: Clears all terminal-related variables
  *    INPUTS: none
  *    OUTPUTS: none
- *    RETURN VALUE: Always 0
+ *    RETURN VALUE: Always -1 as it should never be closed
  *    SIDE EFFECTS: Clears all terminal-related vars
  */
 int terminal_close(int32_t fd) {
-    return 0;
+    return -1;
 }
 
 /*

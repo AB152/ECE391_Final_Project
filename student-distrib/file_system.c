@@ -97,7 +97,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     data_block_t* curr_data_block;
 
     for(bytes_read=0; bytes_read<length; bytes_read++){     //loop through bytes that need to be read
-        if((offset+bytes_read) > curr_inode->file_size)     //break if bytes read go out of file bounds
+        if((offset) > curr_inode->file_size)     //break if bytes read go out of file bounds
             break;
         curr_data_block=(data_block_t*)(fs_data_block + (curr_inode->index_num[offset/BLOCK_SIZE])); //finds start of data block of which to read bytes from
         buf[bytes_read]=curr_data_block->block[offset%BLOCK_SIZE];  //copy data into buf

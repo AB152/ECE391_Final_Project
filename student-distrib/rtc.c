@@ -51,7 +51,7 @@ void RTC_interrupt(){
     send_eoi(RTC_IRQ);
     
     // Possible space to put test_interrupts() function.
-    test_interrupts();
+    //test_interrupts();
 }
 
 /*
