@@ -28,9 +28,6 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
     if(fname==NULL||dentry==NULL)   //check for invalid pointers
         return -1;
 
-    //int name_length=strlen((int8_t*)fname);
-    
-    
     int i;
     for(i=0;i<boot->num_dentries;i++){      //loop through all dentries
         /*if names match, copy over dentry file name, type, and index node into dentry block*/
@@ -160,7 +157,7 @@ int32_t close_file (int32_t fd){
 
 /*  
  * read_dir
- *    DESCRIPTION: Does nothing for now
+ *    DESCRIPTION: Reads all file names into the buf
  *    INPUTS: inode -- file inode to read
  *            offset -- file offset in file system
  *            buf -- ptr to buffer to write to

@@ -4,7 +4,7 @@
 
 #include "keyboard.h"
 #include "lib.h"
-#include "idt_ex_handler.h"
+#include "asm_linkage.h"
 #include "x86_desc.h"
 #include "terminal.h"
 #include "i8259.h"
