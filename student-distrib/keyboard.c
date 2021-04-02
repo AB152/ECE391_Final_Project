@@ -10,6 +10,7 @@
 #include "i8259.h"
 
 /*
+
  * init_keyboard
  *    DESCRIPTION: Initializes the keyboard by setting the IDT entry, PIC IRQ, and clearing buffer
  *    INPUTS/OUTPUTS: none  

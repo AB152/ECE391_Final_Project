@@ -90,6 +90,9 @@ void init_IDT(){
     SET_IDT_ENTRY(idt[17], &alignment_check);           //exception 17
     SET_IDT_ENTRY(idt[18], &machine_check);             //exception 18
     SET_IDT_ENTRY(idt[19], &simd_floating_point);       //exception 19
+    
+    /*initialize 0x80 index in IDT for system calls, see Appendix B*/
+    SET_IDT_ENTRY(idt[0x80], &systems_handler);         
 
     // IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
     // Moved keyboard set_idt_entry to init_keyboard in keyboard.c
