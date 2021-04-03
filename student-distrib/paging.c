@@ -136,6 +136,30 @@ void init_paging() {
 
 }
 
+/*  
+ * set_user_page
+ *    DESCRIPTION: Re-maps the user program page for the process with pid
+ *    INPUTS/OUTPUTS: pid -- ID of process
+ *                    present_flag -- set to 0 to mark page not present, 1 to mark as present
+ *    SIDE EFFECTS: Sets up user page in PhysMem
+ *    NOTES: 
+ */
+void set_user_page(uint32_t pid, int32_t present_flag) {
+    page_directory[USER_PAGE_BASE_ADDR].present = present_flag;
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.read_write = 1;     //all pages are marked read/write for mp3
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.user_supervisor = 1;    //0 for kernel pages
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_write_through = 0;    //we always want writeback, so 0
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_cache_disabled = 1;    //1 for program code and data pages (kernel pages)
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.accessed = 0;   //not used at all in mp3
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.dirty = 0;      //not used at all in mp3
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_size = 1;  //1 if 4M page directory entry
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.global_bit = 0; // user page should not be global
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.available = 0;  //not used at all in mp3
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_attr_index = 0;  //not used at all in mp3
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.reserved = 0;       //reserved bits are always set to 0
+    page_directory[USER_PAGE_BASE_ADDR].base_addr = 2 + pid;     // Map physmem [8MB + (pid * 4MB)] as mult of 4MB
+    flush_tlb();
+}
 
 /*  
  * flush_tlb
