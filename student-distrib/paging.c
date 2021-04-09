@@ -145,7 +145,7 @@ void init_paging() {
  *    NOTES: 
  */
 void set_user_page(uint32_t pid, int32_t present_flag) {
-    page_directory[USER_PAGE_BASE_ADDR].present = present_flag;
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.present = present_flag;
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.read_write = 1;     //all pages are marked read/write for mp3
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.user_supervisor = 1;    //0 for kernel pages
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_write_through = 0;    //we always want writeback, so 0
@@ -157,7 +157,7 @@ void set_user_page(uint32_t pid, int32_t present_flag) {
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.available = 0;  //not used at all in mp3
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_attr_index = 0;  //not used at all in mp3
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.reserved = 0;       //reserved bits are always set to 0
-    page_directory[USER_PAGE_BASE_ADDR].base_addr = 2 + pid;     // Map physmem [8MB + (pid * 4MB)] as mult of 4MB
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.base_addr = 2 + pid;     // Map physmem [8MB + (pid * 4MB)] as mult of 4MB
     flush_tlb();
 }
 

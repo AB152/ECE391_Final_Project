@@ -1,5 +1,7 @@
 #include "system_calls.h"
 #include "paging.h"
+#include "lib.h"
+#include "file_system.h"
 
 int32_t halt(uint8_t status){
 
@@ -11,7 +13,8 @@ int32_t execute(const uint8_t* command){
     }
     int pid; /* IMPORTANT */ // NEED TO DEFINE
     // Check if pid goes above 6 (5 if 0-indexed)
-    uint8_t exec_name[strlen(command)];
+    uint32_t command_length=strlen(command);
+    uint8_t exec_name[command_length];
     dentry_t file_dentry;
     set_user_page(pid, 1); // Set present bit in execute and 0 in halt
     int i = 0;
@@ -19,7 +22,7 @@ int32_t execute(const uint8_t* command){
         exec_name[i] = command[i];
         i++;
     }
-    if(file_name != strlen(command)){
+    if(exec_name != strlen(command)){
         exec_name[i] = NULL;
     }
     int dentry_res = read_dentry_by_name(exec_name, &file_dentry);
