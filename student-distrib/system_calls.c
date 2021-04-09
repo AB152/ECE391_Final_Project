@@ -35,19 +35,31 @@ int32_t execute(const uint8_t* command){
 }
 
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
+    if(fd<0 || fd>7) //check for valid fd index, max 8 files
+        return -1;
 
+    if(buf==NULL)
+        return -1;
+    
+    //question is how do i initialize the pcb??
 }
 
 int32_t write(int32_t fd, const void* buf, int32_t nbytes){
+    if(fd<0 || fd>7) //check for valid fd index, max 8 files
+        return -1;
 
+    if(buf==NULL)
+        return -1;
 }
 
 int32_t open(const uint8_t* filename){
-
+    if(filename==NULL)
+        return -1;
 }
 
 int32_t close(int32_t fd){
-
+    if(fd<0 || fd>7) //check for valid fd index, max 8 files
+        return -1;
 }
 
 

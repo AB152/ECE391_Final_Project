@@ -14,15 +14,21 @@ typedef struct{
 
 // File descriptor struct for entries in the file descriptor array (FDA)
 typedef struct file_descriptor_t {
-    fops_jump_table * fops_table_ptr;      
-    int32_t inode;
-    int32_t file_pos;
+    fops_jump_table fops_table_ptr;      
+    uint32_t inode;
+    uint32_t file_pos;
     uint32_t flags;
 } file_descriptor_t;
 
 //Process control block (PCB) struct described in Appendix A 8.2
 typedef struct{
-    file_descriptor_t open_files_array[8];    //up to 8 open files are represented with a file array in PCB
+    file_descriptor_t fda[8];    //up to 8 open files are represented with a file array in PCB
+    uint32_t process_id;
+    uint32_t esp;
+    uint32_t parent_process_id;
+    uint32_t parent_esp;
+    int arg; //temporary declaration, dont know what type arg should be
+
 
 }pcb_t;
 
