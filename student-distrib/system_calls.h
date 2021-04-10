@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+
 //Appendix A 8.2, fops table should contain entries for open, read, write, and close
 //Note: functions are casted to pointers, otherwise C won't recognize them in struct
 typedef struct{
@@ -10,14 +11,15 @@ typedef struct{
     int32_t (*write)(int32_t fd, const void* buf, int32_t nbytes);
     int32_t (*open)(const uint8_t* filename);
     int32_t (*close)(int32_t fd);
-}fops_jump_table;
+}fops_jump_table_t;
+
 
 // File descriptor struct for entries in the file descriptor array (FDA)
 typedef struct file_descriptor_t {
-    fops_jump_table fops_table_ptr;      
+    fops_jump_table_t fops_table_ptr;      
     uint32_t inode;
-    uint32_t file_pos;
-    uint32_t flags;
+    uint32_t file_pos; 
+    uint32_t flags;     //marks whether is in use
 } file_descriptor_t;
 
 //Process control block (PCB) struct described in Appendix A 8.2
@@ -27,10 +29,13 @@ typedef struct{
     uint32_t esp;
     uint32_t parent_process_id;
     uint32_t parent_esp;
-    int arg; //temporary declaration, dont know what type arg should be
-
+    uint32_t parent_ebp;
+    char arg[100]; //temporary declaration, dont know what type arg should be
 
 }pcb_t;
+
+int32_t bad_call(int32_t fd, const void* buf, int32_t nbytes);
+
 
 /*required functions for CP3, function formats in Appendix B*/
 int32_t halt(uint8_t status);

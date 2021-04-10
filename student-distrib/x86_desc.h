@@ -25,7 +25,10 @@
 // (MP3.1) Define macros for byte sizes
 #define ONE_KB 1024             // 1024 bytes make a KB
 #define FOUR_KB 4096
+#define EIGHT_KB 8192
 #define FOUR_MB 0x400000        // Coincidentally, ONE_KB * ONE_KB * 4 == 0x400000, also the kernel is loaded here
+#define EIGHT_MB 0x800000
+#define ONE_TWO_EIGHT_MB 0x8000000
 #define VIDMEM 0xB8000          // Start of video memory
 
 #ifndef ASM

@@ -1,5 +1,6 @@
 #include "file_system.h"
 #include "lib.h"
+#include "system_calls.h"
 
 /*  
  * init_filesystem
@@ -115,8 +116,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  *    SIDE EFFECTS: buf holds file data
  *    NOTES: See Appendix A
  */
-int32_t read_file(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
-    return read_data(inode, offset, buf, nbytes);
+int32_t read_file(int32_t fd, const void* buf, int32_t nbytes){
+    uint32_t inode, offset;
+    pcb_t* pcb=NULL; //place holder until we figure out how to initialize pcb
+    
+    offset=pcb->fda[fd].file_pos;
+    inode=pcb->fda[fd].inode;
+
+    return read_data(inode, offset, (uint8_t*)buf, nbytes);
 }
 
 /*  
@@ -166,7 +173,12 @@ int32_t close_file (int32_t fd){
  *    SIDE EFFECTS: none
  *    NOTES: See Appendix A
  */
-int32_t read_dir(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
+int32_t read_dir(int32_t fd, const void* buf, int32_t nbytes){
+    uint32_t inode, offset;
+    pcb_t* pcb=NULL; //place holder until we figure out how to initialize pcb
+    
+    offset=pcb->fda[fd].file_pos;
+    inode=pcb->fda[fd].inode;
     if(buf==NULL)       //check for null pointer
         return -1;
     
@@ -174,7 +186,7 @@ int32_t read_dir(uint32_t inode, uint32_t offset, uint8_t* buf, int32_t nbytes){
     for(bytes_read=0; bytes_read<nbytes; bytes_read++){     //loop through bytes that need to be read
         if((offset/FNAME_LENGTH) > boot->num_dentries)        //check if curr directory goes out of bounds
             break;
-        buf[bytes_read]=boot->dentries[offset/FNAME_LENGTH].fname[offset%FNAME_LENGTH]; //copy over file name into buf
+        ((uint8_t*)buf)[bytes_read]=boot->dentries[offset/FNAME_LENGTH].fname[offset%FNAME_LENGTH]; //copy over file name into buf
         offset++;
     }
     return bytes_read;

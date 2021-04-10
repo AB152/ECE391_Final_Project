@@ -139,15 +139,16 @@ void init_paging() {
 /*  
  * set_user_page
  *    DESCRIPTION: Re-maps the user program page for the process with pid
- *    INPUTS/OUTPUTS: pid -- ID of process
- *                    present_flag -- set to 0 to mark page not present, 1 to mark as present
+ *    INPUTS: pid -- ID of process
+ *            present_flag -- set to 0 to mark page not present, 1 to mark as present
+ *    RETURNS: Pointer to page  
  *    SIDE EFFECTS: Sets up user page in PhysMem
  *    NOTES: 
  */
 void set_user_page(uint32_t pid, int32_t present_flag) {
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.present = present_flag;
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.read_write = 1;     //all pages are marked read/write for mp3
-    page_directory[USER_PAGE_BASE_ADDR].pd_mb.user_supervisor = 1;    //0 for kernel pages
+    page_directory[USER_PAGE_BASE_ADDR].pd_mb.user_supervisor = 1;    //1 for user pages
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_write_through = 0;    //we always want writeback, so 0
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.page_cache_disabled = 1;    //1 for program code and data pages (kernel pages)
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.accessed = 0;   //not used at all in mp3
