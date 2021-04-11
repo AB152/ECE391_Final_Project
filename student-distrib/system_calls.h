@@ -12,7 +12,7 @@ typedef struct{
     int32_t (*write)(int32_t fd, const void* buf, int32_t nbytes);
     int32_t (*open)(const uint8_t* filename);
     int32_t (*close)(int32_t fd);
-}fops_jump_table_t;
+} fops_jump_table_t;
 
 
 // File descriptor struct for entries in the file descriptor array (FDA)

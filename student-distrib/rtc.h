@@ -33,15 +33,15 @@ void init_RTC();
 extern void RTC_interrupt();
 
 // Initialize RTC to 2 Hz
-int RTC_open(int32_t fd);
+int32_t RTC_open(const uint8_t* filename);
 
 // Blocks system until RTC interrupt occurs
-int RTC_read(int32_t fd, uint32_t * buf, int32_t n_bytes);
+int32_t RTC_read(int32_t fd, void * buf, int32_t n_bytes);
 
 // Sets RTC frequency
-int RTC_write(int32_t fd, uint32_t * buf, int32_t n_bytes);
+int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes);
 
 // Probably does nothing until we virtualize RTC
-int RTC_close(int32_t fd);
+int32_t RTC_close(int32_t fd);
 
 #endif /* _RTC_H */

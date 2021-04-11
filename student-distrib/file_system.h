@@ -48,13 +48,13 @@ extern int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_
 
 /*required system call functions from Appendix B for files and directories*/
 // extern int32_t read_file(int32_t fd, void* buf, int32_t nbytes);         //format cant be used for cp2 bc of fd
-extern int32_t read_file(int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t read_file(int32_t fd, void* buf, int32_t nbytes);
 extern int32_t write_file(int32_t fd, const void* buf, int32_t nbytes);
 extern int32_t open_file(const uint8_t* filename);
 extern int32_t close_file (int32_t fd);
 
 // extern int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);          //format cant be used for cp2 bc of fd
-extern int32_t read_dir(int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
 extern int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
 extern int32_t open_dir(const uint8_t* dirname);
 extern int32_t close_dir (int32_t fd);

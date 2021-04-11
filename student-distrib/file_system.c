@@ -116,7 +116,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  *    SIDE EFFECTS: buf holds file data
  *    NOTES: See Appendix A
  */
-int32_t read_file(int32_t fd, const void* buf, int32_t nbytes){
+int32_t read_file(int32_t fd, void* buf, int32_t nbytes){
     uint32_t inode, offset;
     pcb_t* pcb=NULL; //place holder until we figure out how to initialize pcb
     
@@ -173,7 +173,7 @@ int32_t close_file (int32_t fd){
  *    SIDE EFFECTS: none
  *    NOTES: See Appendix A
  */
-int32_t read_dir(int32_t fd, const void* buf, int32_t nbytes){
+int32_t read_dir(int32_t fd, void* buf, int32_t nbytes){
     uint32_t inode, offset;
     pcb_t* pcb=NULL; //place holder until we figure out how to initialize pcb
     

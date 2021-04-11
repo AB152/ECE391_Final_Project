@@ -13,7 +13,7 @@
  *    RETURN VALUE: Always 0
  *    SIDE EFFECTS: Initializes all terminal-related vars
  */
-int terminal_open(int32_t fd) {
+int32_t terminal_open(int32_t fd) {
     int i = 0;
     for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
         terminal_buf[i] = 0;
@@ -29,7 +29,7 @@ int terminal_open(int32_t fd) {
  *    RETURN VALUE: Always -1 as it should never be closed
  *    SIDE EFFECTS: Clears all terminal-related vars
  */
-int terminal_close(int32_t fd) {
+int32_t terminal_close(int32_t fd) {
     return -1;
 }
 
@@ -41,7 +41,7 @@ int terminal_close(int32_t fd) {
  *    RETURN VALUE: Number of bytes written
  *    SIDE EFFECTS: Writes to buffer pointed to by input
  */
-int terminal_read(int32_t fd, char * buf, int32_t n_bytes) {
+int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes) {
     
     // NULL check input and return 0 if NULL to signify no bytes read
     if(buf == 0 || n_bytes <= 0)
@@ -77,7 +77,7 @@ int terminal_read(int32_t fd, char * buf, int32_t n_bytes) {
  *    RETURN VALUE: number of bytes/chars written to screen
  *    SIDE EFFECTS: writes to video memory using putc
  */
-int terminal_write(int32_t fd, char * buf, int32_t n_bytes) {
+int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
 
     int i;      // Loop index
 
@@ -87,7 +87,7 @@ int terminal_write(int32_t fd, char * buf, int32_t n_bytes) {
 
     // Print n_bytes worth of chars
     for(i = 0; i < n_bytes; i++) {
-        putc(buf[i]);
+        putc(((char *)(buf))[i]);
     }
     return i;
 }

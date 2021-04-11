@@ -12,18 +12,18 @@
 char terminal_buf[KEYBOARD_BUF_SIZE];
 
 // Terminal's copy of keyboard_buf_i before it gets cleared
-int terminal_buf_i;
+int32_t terminal_buf_i;
 
 // Initalizes terminal
-int terminal_open(int32_t fd);
+int32_t terminal_open(int32_t fd);
 
 // Clear terminal specific vars
-int terminal_close(int32_t fd);
+int32_t terminal_close(int32_t fd);
 
 // Read from keyboard buffer into buf and returns num bytes read
-int terminal_read(int32_t fd, char * buf, int32_t n_bytes);
+int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes);
 
 // Writes to the screen from buf and returns num bytes written or -1
-int terminal_write(int32_t fd, char * buf, int32_t n_bytes);
+int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes);
 
 #endif /* _TERMINAL_H */

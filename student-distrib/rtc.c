@@ -63,7 +63,7 @@ void RTC_interrupt(){
  *    SIDE EFFECTS: Sets RTC frequency to 2 Hz
  *    NOTES: See OSDev links in .h file to understand macros
  */
-int RTC_open(int32_t fd) {
+int32_t RTC_open(const uint8_t * filename) {
 
     // need to change frequency to 2Hz
 
@@ -85,7 +85,7 @@ int RTC_open(int32_t fd) {
  *    SIDE EFFECTS: Blocks system until RTC interrupt
  *    NOTES: none
  */
-int RTC_read(int32_t fd, uint32_t * buf, int32_t n_bytes) {
+int32_t RTC_read(int32_t fd, void * buf, int32_t n_bytes) {
     while(!RTC_int);    // Block until flag is set by interrupt handler
     RTC_int = 0;        // Reset RTC flag
     return 0;
@@ -100,7 +100,7 @@ int RTC_read(int32_t fd, uint32_t * buf, int32_t n_bytes) {
  *    SIDE EFFECTS: Changes RTC frequency to input value
  *    NOTES: Input cannot surpass 1024, check is at line 133
  */
-int RTC_write(int32_t fd, uint32_t * buf, int32_t n_bytes) {
+int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes) {
     uint32_t freq;          // Hold desired RTC frequency
     uint8_t index;          // Holds index of where the 1 bit is in the buffer
     uint8_t flag = 0;       // Checks how many bits of input buffer are set
@@ -112,7 +112,7 @@ int RTC_write(int32_t fd, uint32_t * buf, int32_t n_bytes) {
     // What does "rtc_write must get its input parameter through a buffer and not read the value directly." mean???
 
     // Read buffer and ignore LSB as frequency must be power of 2 excluding 1
-    freq = *buf;
+    freq = *((uint8_t*)buf);
     index = 0;
     
     // If LSB is set in the first place, it's invalid
@@ -174,6 +174,6 @@ int RTC_write(int32_t fd, uint32_t * buf, int32_t n_bytes) {
  *    SIDE EFFECTS: none?
  *    NOTES: none
  */
-int RTC_close(int32_t fd) {
+int32_t RTC_close(int32_t fd) {
     return 0;
 }
