@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#define MAX_PROCESSES 6
 
 //Appendix A 8.2, fops table should contain entries for open, read, write, and close
 //Note: functions are casted to pointers, otherwise C won't recognize them in struct
@@ -26,15 +27,16 @@ typedef struct file_descriptor_t {
 typedef struct{
     file_descriptor_t fda[8];    //up to 8 open files are represented with a file array in PCB
     uint32_t process_id;
-    uint32_t esp;
+    // uint32_t esp;
+    // uint32_t ebp;
     uint32_t parent_process_id;
     uint32_t parent_esp;
     uint32_t parent_ebp;
-    char arg[100]; //temporary declaration, dont know what type arg should be
+    int8_t arg[100]; //temporary declaration, dont know what type arg should be
 
 }pcb_t;
 
-int32_t bad_call(int32_t fd, const void* buf, int32_t nbytes);
+int32_t bad_call();
 
 
 /*required functions for CP3, function formats in Appendix B*/

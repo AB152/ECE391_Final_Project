@@ -130,7 +130,7 @@ void init_paging() {
                   "orl $0x80000000, %%eax;"
                   "movl %%eax, %%cr0;"
                 :                                   // no outputs
-                : "r" (page_directory)              // no inputs
+                : "r" (page_directory)              // input: page_directory
                 : "eax", "cc"        // clobbers eax and condition codes
     );
 
