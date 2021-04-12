@@ -12,8 +12,8 @@
 
 #include "types.h"
 
-// Exception flag (i rly dont care if this is bad prac lmao)
-int exception_flag;
+// Exception flag
+volatile int exception_flag;
 
 // Initializes the IDT
 extern void init_IDT();

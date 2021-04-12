@@ -20,7 +20,7 @@ fops_jump_table_t bad_table = {bad_call,bad_call,bad_call,bad_call};
 // Array of flags (should they be PCBs?) to track currently running processes
 uint32_t processes[6] = {0, 0, 0, 0, 0, 0};
 
-uint32_t last_assigned_pid;
+static uint32_t last_assigned_pid;
 
 /*
  * bad_call
@@ -41,13 +41,12 @@ int32_t bad_call(){
  */
 int32_t halt(uint8_t status){
 
-    cli();
     pcb_t *pcb_ptr =(pcb_t*)(tss.esp0  & 0xFFFFE000);
 
     
     //initalize pcb
     int i;
-    for(i = 0; i < 8; i++) {
+    for(i = 2; i < 8; i++) {
         if(pcb_ptr->fda[i].flags==1){   //close any file descriptors in use
             close(i);   
             pcb_ptr->fda[i].fops_table_ptr=bad_table;
@@ -103,8 +102,6 @@ int32_t halt(uint8_t status){
  *    RETURNS: Returns code given by program, or -1 if unsuccessful
  */
 int32_t execute(const uint8_t* command){
-    
-    cli();
     
     // Check null input 
     if(command == NULL){
@@ -291,7 +288,7 @@ int32_t execute(const uint8_t* command){
  *    RETURNS: The return value of the desired read() function
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
-    /* IMPORTANT */
+    sti();
     pcb_t *pcb = (pcb_t*)(tss.esp0  & 0xFFFFE000); //ANDing the process's ESP register w/ appropriate bit mask to reach top of stack
     if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
         return -1;
@@ -314,6 +311,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  *    RETURNS: The return value of the desired write() function
  */
 int32_t write(int32_t fd, const void* buf, int32_t nbytes){
+    sti();
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);    //temp placeholder until we figure out how to initialize the pcb
     if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
         return -1;
@@ -332,6 +330,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes){
  *    RETURNS: The file descriptor the opened file was assigned to, or -1 if unsuccessful
  */
 int32_t open(const uint8_t* filename){
+    sti();
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);    //temp placeholder until we figure out how to initialize the pcb
     if(filename==NULL)  //check for valid file
         return -1;
@@ -383,6 +382,7 @@ int32_t open(const uint8_t* filename){
  *    RETURNS: The return value of the desired close function
  */
 int32_t close(int32_t fd){
+    sti();
     pcb_t* pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000); //temp placeholder until we figure out how to initialize the pcb
     
     if(fd<2 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files

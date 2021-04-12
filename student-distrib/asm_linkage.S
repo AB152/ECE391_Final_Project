@@ -236,7 +236,6 @@ systems_handler:
     cmpl $6, %eax
     jg invalid_syscall
 
-    sti
     call *systems_jump_table(,%eax,4)   //jump to the respective system call C function
     addl $12, %esp                      //clear args from stack
     jmp end_systems_handler
