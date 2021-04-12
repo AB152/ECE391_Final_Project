@@ -5,6 +5,7 @@
 
 #define BLOCK_SIZE 4096         //file system memory is divided into 4KB blocks
 #define FNAME_LENGTH  32        //file name limit is 32 characters 
+#define MAX_DENTRY 64
 
 typedef struct{ 
     uint8_t block[BLOCK_SIZE];    

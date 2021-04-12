@@ -1,7 +1,8 @@
 asm_linkage.o: asm_linkage.S asm_linkage.h
 boot.o: boot.S multiboot.h x86_desc.h types.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
-file_system.o: file_system.c file_system.h types.h lib.h system_calls.h
+file_system.o: file_system.c file_system.h types.h lib.h system_calls.h \
+  x86_desc.h
 i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c idt.h lib.h types.h x86_desc.h asm_linkage.h keyboard.h \
   rtc.h system_calls.h i8259.h
@@ -14,7 +15,7 @@ paging.o: paging.c paging.h x86_desc.h types.h
 rtc.o: rtc.c rtc.h lib.h types.h asm_linkage.h idt.h x86_desc.h \
   keyboard.h system_calls.h i8259.h
 system_calls.o: system_calls.c x86_desc.h types.h system_calls.h paging.h \
-  lib.h rtc.h file_system.h terminal.h keyboard.h
+  lib.h rtc.h file_system.h terminal.h keyboard.h idt.h
 terminal.o: terminal.c terminal.h keyboard.h types.h lib.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h file_system.h \
-  terminal.h keyboard.h
+  terminal.h keyboard.h paging.h system_calls.h

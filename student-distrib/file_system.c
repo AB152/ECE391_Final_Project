@@ -1,6 +1,7 @@
 #include "file_system.h"
 #include "lib.h"
 #include "system_calls.h"
+#include "x86_desc.h"
 
 /*  
  * init_filesystem
@@ -118,11 +119,13 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  */
 int32_t read_file(int32_t fd, void* buf, int32_t nbytes){
     uint32_t inode, offset;
-    pcb_t* pcb=NULL; //place holder until we figure out how to initialize pcb
+    pcb_t* pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000); //place holder until we figure out how to initialize pcb
     
     offset=pcb->fda[fd].file_pos;
     inode=pcb->fda[fd].inode;
 
+
+    pcb->fda[fd].file_pos+=nbytes;  //update file position for next file
     return read_data(inode, offset, (uint8_t*)buf, nbytes);
 }
 
@@ -165,8 +168,7 @@ int32_t close_file (int32_t fd){
 /*  
  * read_dir
  *    DESCRIPTION: Reads all file names into the buf
- *    INPUTS: inode -- file inode to read
- *            offset -- file offset in file system
+ *    INPUTS: fd -- file descriptor
  *            buf -- ptr to buffer to write to
  *            nbytes -- number of bytes to read
  *    OUTPUTS: writes file names to buf
@@ -174,22 +176,23 @@ int32_t close_file (int32_t fd){
  *    NOTES: See Appendix A
  */
 int32_t read_dir(int32_t fd, void* buf, int32_t nbytes){
-    uint32_t inode, offset;
-    pcb_t* pcb=NULL; //place holder until we figure out how to initialize pcb
+    pcb_t* pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000); //place holder until we figure out how to initialize pcb
     
-    offset=pcb->fda[fd].file_pos;
-    inode=pcb->fda[fd].inode;
-    if(buf==NULL)       //check for null pointer
-        return -1;
+    dentry_t dentry;
+    uint32_t position;
+    int32_t valid;
     
-    int bytes_read;
-    for(bytes_read=0; bytes_read<nbytes; bytes_read++){     //loop through bytes that need to be read
-        if((offset/FNAME_LENGTH) > boot->num_dentries)        //check if curr directory goes out of bounds
-            break;
-        ((uint8_t*)buf)[bytes_read]=boot->dentries[offset/FNAME_LENGTH].fname[offset%FNAME_LENGTH]; //copy over file name into buf
-        offset++;
-    }
-    return bytes_read;
+    position=pcb->fda[fd].file_pos;                     //initializes file position
+    valid = read_dentry_by_index(position, &dentry);   //checks whether copying over is valid
+    
+    if(buf==NULL || position>=MAX_DENTRY || valid == -1)       //check for null pointer
+        return 0;
+    
+    position+=1;
+    pcb->fda[fd].file_pos=position;             //update next position in file descriptor array
+    memcpy(buf, (const void*)dentry.fname, FNAME_LENGTH);   //copies over file name into buf
+    return nbytes;
+    
 }
 
 /*  

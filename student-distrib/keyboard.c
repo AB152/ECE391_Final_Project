@@ -56,7 +56,7 @@ void keyboard_handler() {
     // 0, 55, 56, 57, 45, 52, 53, 54, 43, 49,
     // 50, 51, 48, 46, 0, 0, 0, 0, 0
     // };
-    
+
     // Index is the scan code, the value at an index is that scan code key's ASCII
     int scan_code_to_ascii[] = {
     0, 0x1B, '1', '2', '3', '4', '5', '6', '7', '8',

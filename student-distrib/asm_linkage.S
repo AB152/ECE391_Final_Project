@@ -219,7 +219,6 @@ RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt h
 
 /*implementing assmebly linkage for system calls*/
 systems_handler:
-    cli 
     pushl %ebp          //save all registers, see OSDev
     pushl %edi
     pushl %esi
@@ -237,6 +236,7 @@ systems_handler:
     cmpl $6, %eax
     jg invalid_syscall
 
+    sti
     call *systems_jump_table(,%eax,4)   //jump to the respective system call C function
     addl $12, %esp                      //clear args from stack
     jmp end_systems_handler
@@ -252,14 +252,14 @@ end_systems_handler:
     popl %esi 
     popl %edi
     popl %ebp
-    sti 
+    sti
     iret 
 
 /*jump table that redirects to system call functions in C,
 *0x0 is used as a placeholder since all system call numbers
 *stored in %eax are between 1 and 10, see Appendix B*/
 systems_jump_table:
-    .long 0x0, halt, execute, read, write, open, close 
+    .long bad_call, halt, execute, read, write, open, close, getargs 
 
 
 

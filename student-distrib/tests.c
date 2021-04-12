@@ -4,6 +4,8 @@
 #include "rtc.h"
 #include "file_system.h"
 #include "terminal.h"
+#include "paging.h"
+#include "system_calls.h"
 
 #define PASS 1
 #define FAIL 0
@@ -281,6 +283,6 @@ void launch_tests(){
 	//TEST_OUTPUT("test_RTC_read", test_RTC_read());
 	//TEST_OUTPUT("test_RTC_write", test_RTC_write());
 	//TEST_OUTPUT("test_terminal_keyboard", test_terminal_keyboard());
-	TEST_OUTPUT("list_all_files", list_all_files());
-	TEST_OUTPUT("read_file_by_name", read_file_by_name());
+	//TEST_OUTPUT("list_all_files", list_all_files());
+	//TEST_OUTPUT("read_file_by_name", read_file_by_name());
 }

@@ -52,4 +52,6 @@ int32_t open(const uint8_t* filename);
 
 int32_t close(int32_t fd);
 
+int32_t getargs(uint8_t * buf, int32_t nbytes);
+
 #endif /* _SYSTEM_CALLS_H */

@@ -5,6 +5,7 @@
 #include "rtc.h"
 #include "file_system.h"
 #include "terminal.h"
+#include "idt.h"
 
 /*fops tables for different types*/
 fops_jump_table_t rtc_table = {RTC_read, RTC_write, RTC_open, RTC_close};
@@ -21,10 +22,23 @@ uint32_t processes[6] = {0, 0, 0, 0, 0, 0};
 
 uint32_t last_assigned_pid;
 
+/*
+ * bad_call
+ *    DESCRIPTION: Generic function called upon bad sycall for stdin or stdout
+ *    INPUTS/OUTPUTS: None
+ *    RETURNS: Always -1
+ */
 int32_t bad_call(){
     return -1;
 }
 
+/*
+ * halt
+ *    DESCRIPTION: Cleans up process that just finished running
+ *    INPUTS: status -- Return code of the halting process
+ *    OUTPUTS: none
+ *    RETURNS: should never return
+ */
 int32_t halt(uint8_t status){
 
     cli();
@@ -48,22 +62,42 @@ int32_t halt(uint8_t status){
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
 
+    // Check for exceptions and return 256 if so
+    int32_t real_status;
+    if(exception_flag) {
+        exception_flag = 0;
+        real_status = 256;
+    }
+    else
+        real_status = status;
+
+    // Mark PID as free
+    processes[pcb_ptr->process_id] = 0;
+
     // swap stacks
     asm volatile(
         "movl %0, %%esp;"
         "movl %1, %%ebp;"
         "xorl %%eax, %%eax;"
-        "movb %2, %%al;"
+        "movl %2, %%eax;"
         // "pushl %2;"
         // "popl %%eax;"
         "jmp EXECUTE_LABEL;"
         :       // Outputs
-        : "r"(pcb_ptr->parent_esp), "r"(pcb_ptr->parent_ebp), "r"(status) // Inputs
+        : "r"(pcb_ptr->parent_esp), "r"(pcb_ptr->parent_ebp), "r"(real_status) // Inputs
         : "eax" // Clobbers
     );
     return -1;      //temp return val
 }
 
+/*
+ * execute
+ *    DESCRIPTION: Executes a program
+ *    INPUTS: command -- the executable to run including its arguments
+ *    OUTPUTS: none
+ *    SIDE EFFECTS: Copies program to corresponding page and runs it
+ *    RETURNS: Returns code given by program, or -1 if unsuccessful
+ */
 int32_t execute(const uint8_t* command){
     
     cli();
@@ -91,8 +125,13 @@ int32_t execute(const uint8_t* command){
     // Calculate pointer to next PCB
     pcb_t * next_pcb_ptr = (pcb_t *)(EIGHT_MB - ((next_pid + 1) * EIGHT_KB));
 
-    // Initialize every fda entry
-    for(i = 0; i < 8; i++) {
+    // Initialize every fda entry and activate stdin and stdout
+    for(i = 0; i < 2; i++) {
+        next_pcb_ptr->fda[i].inode = 0;
+        next_pcb_ptr->fda[i].file_pos = 0;
+        next_pcb_ptr->fda[i].flags = 1;
+    }
+    for(i = 2; i < 8; i++) {
         next_pcb_ptr->fda[i].inode = 0;
         next_pcb_ptr->fda[i].file_pos = 0;
         next_pcb_ptr->fda[i].flags = 0;
@@ -133,9 +172,10 @@ int32_t execute(const uint8_t* command){
     set_user_page(next_pid, 1); // Set present bit in execute and 0 in halt
     
     // Load executable into user page
-    int val = read_data(file_dentry.inode, 0, (uint8_t*)PROG_IMG_ADDR, exec_length);
+    int val = read_data(file_dentry.inode, 0, (uint8_t*)PROG_IMG_ADDR, 100000);
     if(val == -1){
         set_user_page(next_pid, 0);
+        set_user_page(last_assigned_pid, 1);
         return -1;
     }
 
@@ -144,18 +184,22 @@ int32_t execute(const uint8_t* command){
     read_data(file_dentry.inode, 0, elf_check, 4);
     if(elf_check[0] != 0x7f){
         set_user_page(next_pid, 0);
+        set_user_page(last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[1] != 0x45){
         set_user_page(next_pid, 0);
+        set_user_page(last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[2] != 0x4c){
         set_user_page(next_pid, 0);
+        set_user_page(last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[3] != 0x46){
         set_user_page(next_pid, 0);
+        set_user_page(last_assigned_pid, 1);
         return -1;
     }
 
@@ -185,6 +229,8 @@ int32_t execute(const uint8_t* command){
     tss.esp0 = EIGHT_MB - (next_pid * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
 
+    // prog_entry_addr=tss.esp0;
+
     if(next_pid == 0){
         next_pcb_ptr->parent_esp = NULL;
         next_pcb_ptr->parent_ebp = NULL;
@@ -196,25 +242,27 @@ int32_t execute(const uint8_t* command){
                     : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
         );   
     }
-
+    
     // Push items to stack and context switch using IRET
     asm volatile (
-
+        
+        "movl %1, %%ds;"
+        
         //"xorl %%eax, %%eax;"
-        "pushl %1;"
+        "pushl %1;"                 //push USER_DS, 0x2B
         //"popw %%ax;"
         //"pushl %%eax;"
 
         "pushl $0x083ffffc;"         // Set ESP to point to the user page
         
         //"xorl %%eax, %%eax;"
-        "pushfl;"
+        "pushfl;"                   //push flags
         "popl %%eax;"
         "orl $0x200, %%eax;"        //sets bit 9 to 1 in the flags register to sti
         "pushl %%eax;"
 
         //"xorl %%eax, %%eax;"
-        "pushl %2;"
+        "pushl %2;"                 //push USER_CS, 0x23
         //"popw %%ax;"
         //"pushl %%eax;"
 
@@ -225,17 +273,26 @@ int32_t execute(const uint8_t* command){
         "EXECUTE_LABEL: "
         :                       // No Outputs
         : "r"(prog_entry_addr), "r"(USER_DS), "r"(USER_CS)      // Inputs
-        : "eax", "cc"                      // Clobbers
+        : "eax"                     // Clobbers
     );
     
 
     return 0;
 }
 
+/*
+ * read
+ *    DESCRIPTION: Calls the correspoding read() function
+ *    INPUTS: fd -- file dsecriptor
+ *            buf -- input buffer
+ *            nbytes -- number of bytes to write to buf
+ *    OUTPUTS: none
+ *    RETURNS: The return value of the desired read() function
+ */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
     /* IMPORTANT */
     pcb_t *pcb = (pcb_t*)(tss.esp0  & 0xFFFFE000); //ANDing the process's ESP register w/ appropriate bit mask to reach top of stack
-    if(fd<0 || fd>7) //check for valid fd index, max 8 files
+    if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
         return -1;
 
     if(buf==NULL)
@@ -246,9 +303,18 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
     return pcb->fda[fd].fops_table_ptr.read(fd, buf, nbytes);
 }
 
+/*
+ * write
+ *    DESCRIPTION: Calls the correspoding write() function
+ *    INPUTS: fd -- file dsecriptor
+ *            buf -- input buffer
+ *            nbytes -- number of bytes to write to buf
+ *    OUTPUTS: none
+ *    RETURNS: The return value of the desired write() function
+ */
 int32_t write(int32_t fd, const void* buf, int32_t nbytes){
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);    //temp placeholder until we figure out how to initialize the pcb
-    if(fd<0 || fd>7) //check for valid fd index, max 8 files
+    if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
         return -1;
 
     if(buf==NULL)
@@ -257,6 +323,13 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes){
     return pcb->fda[fd].fops_table_ptr.write(fd, buf, nbytes);
 }
 
+/*
+ * open
+ *    DESCRIPTION: Opens the desired file
+ *    INPUTS: filename -- name of the file to open
+ *    OUTPUTS: none
+ *    RETURNS: The file descriptor the opened file was assigned to, or -1 if unsuccessful
+ */
 int32_t open(const uint8_t* filename){
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);    //temp placeholder until we figure out how to initialize the pcb
     if(filename==NULL)  //check for valid file
@@ -301,10 +374,17 @@ int32_t open(const uint8_t* filename){
     return i;                   //return index of file assigned in file descriptor array
 }
 
+/*
+ * close
+ *    DESCRIPTION: Calls the corresponding close function
+ *    INPUTS: fd -- the file descriptor 
+ *    OUTPUTS: none
+ *    RETURNS: The return value of the desired close function
+ */
 int32_t close(int32_t fd){
     pcb_t* pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000); //temp placeholder until we figure out how to initialize the pcb
     
-    if(fd<2 || fd>7) //check for valid fd index, max 8 files
+    if(fd<2 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
         return -1;
     
     pcb->fda[fd].flags=0; //mark index in file descriptor array as available
@@ -312,6 +392,12 @@ int32_t close(int32_t fd){
     return pcb->fda[fd].fops_table_ptr.close(fd);
 }
 
-
+/*
+ * getargs
+ *    DESCRIPTION: Does nothing for now
+ */
+int32_t getargs(uint8_t * buf, int32_t nbytes) {
+    return 0;
+}
 
 

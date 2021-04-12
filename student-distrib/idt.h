@@ -12,11 +12,17 @@
 
 #include "types.h"
 
+// Exception flag (i rly dont care if this is bad prac lmao)
+int exception_flag;
+
 // Initializes the IDT
 extern void init_IDT();
 
 // Handles exceptions thrown by the processor
 extern void exception_handler(int32_t interrupt_vector);
+
+// Wrapper for the halt system call used by the exceptions
+void halt_wrapper();
 
 //#endif /* ASM */
 #endif /* _IDT_H */

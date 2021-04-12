@@ -14,6 +14,7 @@
 
 #include "lib.h"
 
+#include "system_calls.h"
 
 
 /*
@@ -97,6 +98,7 @@ void init_IDT(){
     // IMPORTANT: Piazza (@882) said that we "shouldn't hard code DEVICE handlers into the IDT"
     // Moved keyboard set_idt_entry to init_keyboard in keyboard.c
     // Moved RTC set_idt_entry to init_RTC in rtc.c
+    exception_flag = 0;
 }
 
 // Handles interrupt (print error message and other relevant items like regs)
@@ -106,60 +108,69 @@ void exception_handler(int32_t interrupt_vector){
     switch(interrupt_vector){
         case 0xFFFFFFFF:
             printf(" Divide By Zero Exception");             //print all resepctive exceptions
-            while(1);                                        //wait indefinitely
+            halt_wrapper();
         case 0xFFFFFFFE:
             printf(" Debug Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFFD:
             printf(" Non-masking Interrupt Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFFC:
             printf(" Breakpoint Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFFB:
             printf(" Overflow Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFFA:
             printf(" Bound Range Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF9:
             printf(" Invalid Opcode Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF8:
             printf(" Device Not Available");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF7:
             printf(" Double Fault Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF6:
             printf(" Coprocessor Segment Overrun");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF5:
             printf(" Invalid TSS Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF4:
             printf(" Segment Not Present");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF3:
             printf(" Stack Fault Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF2:
             printf(" General Protection Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFF1:
             printf(" Page-Fault Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFEF:
             printf(" x87 FPU Floating-Point Error");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFEE:
             printf(" Alignment Check Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFED:
             printf(" Machine-Check Exception");
-            while(1);
+            halt_wrapper();
         case 0xFFFFFFEC:
             printf(" SIMD Floating-Point Exception");
-            while(1);
+            halt_wrapper();
     }
+}
+
+/*
+ * halt_wrapper
+ *    DESCRIPTION: Transitions to the halt syscall and setting exception_flag (Not rly a wrapper)
+ */
+void halt_wrapper() {
+    exception_flag = 1;
+    halt(255);
 }
