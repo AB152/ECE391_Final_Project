@@ -171,8 +171,8 @@ int32_t close_file (int32_t fd){
  *    INPUTS: fd -- file descriptor
  *            buf -- ptr to buffer to write to
  *            nbytes -- number of bytes to read
- *    OUTPUTS: writes file names to buf
- *    SIDE EFFECTS: none
+ *    OUTPUTS: returns number of bytes read
+ *    SIDE EFFECTS: writes file names to buf
  *    NOTES: See Appendix A
  */
 int32_t read_dir(int32_t fd, void* buf, int32_t nbytes){

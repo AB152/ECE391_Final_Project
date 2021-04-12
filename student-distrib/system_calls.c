@@ -24,7 +24,7 @@ uint32_t last_assigned_pid;
 
 /*
  * bad_call
- *    DESCRIPTION: Generic function called upon bad sycall for stdin or stdout
+ *    DESCRIPTION: Generic function called upon bad sycall for any invalid function type
  *    INPUTS/OUTPUTS: None
  *    RETURNS: Always -1
  */
@@ -37,16 +37,14 @@ int32_t bad_call(){
  *    DESCRIPTION: Cleans up process that just finished running
  *    INPUTS: status -- Return code of the halting process
  *    OUTPUTS: none
- *    RETURNS: should never return
+ *    RETURNS: should never return, it should instantly jump to execute
  */
 int32_t halt(uint8_t status){
 
     cli();
     pcb_t *pcb_ptr =(pcb_t*)(tss.esp0  & 0xFFFFE000);
 
-    if(pcb_ptr->parent_process_id == 0 && pcb_ptr -> parent_esp == NULL && pcb_ptr -> parent_ebp == NULL){
-        execute((uint8_t*)"shell");
-    }
+    
     //initalize pcb
     int i;
     for(i = 0; i < 8; i++) {
@@ -58,10 +56,19 @@ int32_t halt(uint8_t status){
     
     // restore paging
     set_user_page(pcb_ptr -> parent_process_id, 1);
+    
+    // Mark PID as free
+    processes[pcb_ptr->process_id] = 0;
 
+    // Check if we're at base shell and spawn new base shell if so
+    if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
+        
+        execute((uint8_t*)"shell");
+    }
+    
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
-
+    
     // Check for exceptions and return 256 if so
     int32_t real_status;
     if(exception_flag) {
@@ -70,9 +77,6 @@ int32_t halt(uint8_t status){
     }
     else
         real_status = status;
-
-    // Mark PID as free
-    processes[pcb_ptr->process_id] = 0;
 
     // swap stacks
     asm volatile(
@@ -214,7 +218,6 @@ int32_t execute(const uint8_t* command){
 
     // Mark PID as in use and set PCB
     processes[next_pid] = 1;
-    next_pcb_ptr->process_id = next_pid;
     last_assigned_pid = next_pid;
 
     // Get addr exec's first instruction (bytes 24-27 of the exec file)
@@ -228,8 +231,6 @@ int32_t execute(const uint8_t* command){
     // Prepare TSS for context switch
     tss.esp0 = EIGHT_MB - (next_pid * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
-
-    // prog_entry_addr=tss.esp0;
 
     if(next_pid == 0){
         next_pcb_ptr->parent_esp = NULL;

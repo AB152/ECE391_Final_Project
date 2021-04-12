@@ -217,7 +217,7 @@ RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt h
     sti 
     iret 
 
-/*implementing assmebly linkage for system calls*/
+/*implementing assembly linkage for system calls*/
 systems_handler:
     pushl %ebp          //save all registers, see OSDev
     pushl %edi
