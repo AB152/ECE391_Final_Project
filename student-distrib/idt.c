@@ -107,61 +107,61 @@ void exception_handler(int32_t interrupt_vector){
     //clear();
     switch(interrupt_vector){
         case 0xFFFFFFFF:
-            printf(" Divide By Zero Exception");             //print all resepctive exceptions
+            printf(" Divide By Zero Exception\n");             //print all resepctive exceptions
             halt_wrapper();
         case 0xFFFFFFFE:
-            printf(" Debug Exception");
+            printf(" Debug Exception\n");
             halt_wrapper();
         case 0xFFFFFFFD:
-            printf(" Non-masking Interrupt Exception");
+            printf(" Non-masking Interrupt Exception\n");
             halt_wrapper();
         case 0xFFFFFFFC:
-            printf(" Breakpoint Exception");
+            printf(" Breakpoint Exception\n");
             halt_wrapper();
         case 0xFFFFFFFB:
-            printf(" Overflow Exception");
+            printf(" Overflow Exception\n");
             halt_wrapper();
         case 0xFFFFFFFA:
-            printf(" Bound Range Exception");
+            printf(" Bound Range Exception\n");
             halt_wrapper();
         case 0xFFFFFFF9:
-            printf(" Invalid Opcode Exception");
+            printf(" Invalid Opcode Exception\n");
             halt_wrapper();
         case 0xFFFFFFF8:
-            printf(" Device Not Available");
+            printf(" Device Not Available\n");
             halt_wrapper();
         case 0xFFFFFFF7:
-            printf(" Double Fault Exception");
+            printf(" Double Fault Exception\n");
             halt_wrapper();
         case 0xFFFFFFF6:
-            printf(" Coprocessor Segment Overrun");
+            printf(" Coprocessor Segment Overrun\n");
             halt_wrapper();
         case 0xFFFFFFF5:
-            printf(" Invalid TSS Exception");
+            printf(" Invalid TSS Exception\n");
             halt_wrapper();
         case 0xFFFFFFF4:
-            printf(" Segment Not Present");
+            printf(" Segment Not Present\n");
             halt_wrapper();
         case 0xFFFFFFF3:
-            printf(" Stack Fault Exception");
+            printf(" Stack Fault Exception\n");
             halt_wrapper();
         case 0xFFFFFFF2:
-            printf(" General Protection Exception");
+            printf(" General Protection Exception\n");
             halt_wrapper();
         case 0xFFFFFFF1:
-            printf(" Page-Fault Exception");
+            printf(" Page-Fault Exception\n");
             halt_wrapper();
         case 0xFFFFFFEF:
-            printf(" x87 FPU Floating-Point Error");
+            printf(" x87 FPU Floating-Point Error\n");
             halt_wrapper();
         case 0xFFFFFFEE:
-            printf(" Alignment Check Exception");
+            printf(" Alignment Check Exception\n");
             halt_wrapper();
         case 0xFFFFFFED:
-            printf(" Machine-Check Exception");
+            printf(" Machine-Check Exception\n");
             halt_wrapper();
         case 0xFFFFFFEC:
-            printf(" SIMD Floating-Point Exception");
+            printf(" SIMD Floating-Point Exception\n");
             halt_wrapper();
     }
 }
