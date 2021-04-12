@@ -58,6 +58,7 @@ int32_t halt(uint8_t status){
     
     // Mark PID as free
     processes[pcb_ptr->process_id] = 0;
+    last_assigned_pid = pcb_ptr->parent_process_id;
 
     // Check if we're at base shell and spawn new base shell if so
     if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
