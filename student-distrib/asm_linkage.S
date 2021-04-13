@@ -233,7 +233,7 @@ systems_handler:
 
     cmpl $1, %eax       //make sure that system call stored in %eax is between 1 and 6 (for CP3)
     jl invalid_syscall
-    cmpl $6, %eax
+    cmpl $10, %eax
     jg invalid_syscall
 
     call *systems_jump_table(,%eax,4)   //jump to the respective system call C function
@@ -258,7 +258,7 @@ end_systems_handler:
 *0x0 is used as a placeholder since all system call numbers
 *stored in %eax are between 1 and 10, see Appendix B*/
 systems_jump_table:
-    .long bad_call, halt, execute, read, write, open, close, getargs 
+    .long bad_call, halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn 
 
 
 

@@ -28,6 +28,9 @@
 #define EIGHT_KB 8192
 #define FOUR_MB 0x400000        // Coincidentally, ONE_KB * ONE_KB * 4 == 0x400000, also the kernel is loaded here
 #define EIGHT_MB 0x800000
+#define ONE_TWO_EIGHT_MB 0x08000000
+#define ONE_THREE_TWO_MB 0x08400000
+#define TWO_FIVE_SIX_MB 0x10000000
 #define PROG_IMG_ADDR 0x08048000
 #define VIDMEM 0xB8000          // Start of video memory
 

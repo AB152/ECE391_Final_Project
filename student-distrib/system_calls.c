@@ -18,7 +18,7 @@ fops_jump_table_t stdout_table = {bad_call,terminal_write,bad_call,bad_call};
 fops_jump_table_t bad_table = {bad_call,bad_call,bad_call,bad_call};
 
 // Array of flags (should they be PCBs?) to track currently running processes
-uint32_t processes[6] = {0, 0, 0, 0, 0, 0};
+uint32_t processes[MAX_PROCESSES] = {0, 0, 0, 0, 0, 0};
 
 static uint32_t last_assigned_pid;
 
@@ -62,7 +62,6 @@ int32_t halt(uint8_t status){
 
     // Check if we're at base shell and spawn new base shell if so
     if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
-        
         execute((uint8_t*)"shell");
     }
     
@@ -84,8 +83,6 @@ int32_t halt(uint8_t status){
         "movl %1, %%ebp;"
         "xorl %%eax, %%eax;"
         "movl %2, %%eax;"
-        // "pushl %2;"
-        // "popl %%eax;"
         "jmp EXECUTE_LABEL;"
         :       // Outputs
         : "r"(pcb_ptr->parent_esp), "r"(pcb_ptr->parent_ebp), "r"(real_status) // Inputs
@@ -221,8 +218,6 @@ int32_t execute(const uint8_t* command){
     // Get addr exec's first instruction (bytes 24-27 of the exec file)
     uint8_t prog_entry_buf[4];
     uint32_t prog_entry_addr;
-    
-    // IMPORTANT: Byte 24 is MSByte, but line 181 reads it backwards. Find a fix? 
     read_data(file_dentry.inode, 24, prog_entry_buf, 4);
     prog_entry_addr = *((uint32_t*)prog_entry_buf);
 
@@ -247,25 +242,18 @@ int32_t execute(const uint8_t* command){
         
         "movl %1, %%ds;"
         
-        //"xorl %%eax, %%eax;"
         "pushl %1;"                 //push USER_DS, 0x2B
-        //"popw %%ax;"
-        //"pushl %%eax;"
-
-        "pushl $0x083ffffc;"         // Set ESP to point to the user page
         
-        //"xorl %%eax, %%eax;"
+        "pushl $0x083ffffc;"        // Set ESP to point to the user page
+        
         "pushfl;"                   //push flags
         "popl %%eax;"
         "orl $0x200, %%eax;"        //sets bit 9 to 1 in the flags register to sti
         "pushl %%eax;"
 
-        //"xorl %%eax, %%eax;"
         "pushl %2;"                 //push USER_CS, 0x23
-        //"popw %%ax;"
-        //"pushl %%eax;"
-
-        "pushl %0;"
+        
+        "pushl %0;"                 // Push the addr of exec's first instruction for EIP
 
         "iret;"
 
@@ -274,7 +262,6 @@ int32_t execute(const uint8_t* command){
         : "r"(prog_entry_addr), "r"(USER_DS), "r"(USER_CS)      // Inputs
         : "eax"                     // Clobbers
     );
-    
 
     return 0;
 }
@@ -396,10 +383,49 @@ int32_t close(int32_t fd){
 
 /*
  * getargs
- *    DESCRIPTION: Does nothing for now
+ *    DESCRIPTION: Puts the arguments of the last shell command to the output buffer
+ *    INPUTS: buf -- output buffer in user level
+ *            nbytes -- number of bytes to write
+ *    OUTPUTS: writes the arguments of the last shell command to buf
+ *    RETURNS: 0 on success, -1 on fail
  */
 int32_t getargs(uint8_t * buf, int32_t nbytes) {
     return 0;
 }
 
+/*
+ * vidmap
+ *    DESCRIPTION: Creates a video memory page for the user at the given address
+ *    INPUTS: screen_start -- pointer to user level
+ *    OUTPUTS: Writes the VirtMem address that we map the user's video page to
+ *                into ptr pointed by screen_start (should always be 256MB as that's our pre-set addr)
+ *    RETURNS: 0 on success, -1 on fail
+ */
+int32_t vidmap(uint8_t ** screen_start) {
 
+    // Verify that screen_start is within the user-level page (128MB-132MB)
+    if((uint32_t)screen_start > ONE_THREE_TWO_MB || (uint32_t)screen_start < ONE_TWO_EIGHT_MB) {
+        return -1;
+    }
+    
+    // Set the page entry and copy the VirtMem address to user space
+    set_user_video_page(1);
+    *screen_start = (uint8_t*)TWO_FIVE_SIX_MB;
+    return 0;
+}
+
+/*
+ * set_handler
+ *    DESCRIPTION: Does nothing for now
+ */
+int32_t set_handler(int32_t signum, void* handler_address) {
+    return -1;
+}
+
+/*
+ * getargs
+ *    DESCRIPTION: Does nothing for now
+ */
+int32_t sigreturn(void) {
+    return -1;
+}
