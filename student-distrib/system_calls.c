@@ -153,13 +153,14 @@ int32_t execute(const uint8_t* command){
         i++;
     }
 
-    // Parse possible arguments (accepts multiple spaces b/t cmd and arg)
+    // Parse possible arguments (strips spaces between cmd and arg)
     int j = 0;
     memset(next_pcb_ptr->arg, '\0', MAX_ARGS);  // Zero out PCB's args array
     if(command[i] != NULL){
         i++;
         while(command[i] != NULL && i < command_length && j<MAX_ARGS){
-            if(command[i] == ' '){
+            // Strip spaces between cmd and arg
+            if(command[i] == ' ' && j == 0){
                 i++;
                 continue;
             }
