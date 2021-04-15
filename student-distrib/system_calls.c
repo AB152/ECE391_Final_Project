@@ -141,12 +141,13 @@ int32_t execute(const uint8_t* command){
     next_pcb_ptr->fda[1].fops_table_ptr = stdout_table;
 
     // Parse command
-    uint32_t command_length=strlen((int8_t *)command);
+    uint32_t command_length = strlen((int8_t *)command) + 1;    // Adding 1 allows us to add a NULL terminator
     uint8_t exec_name[command_length];
     dentry_t file_dentry;
 
-    // Find command from entry
-    i = 0;    
+    // Find command from entry (IMPORTANT: Strip leading spaces?)
+    i = 0;
+    memset(exec_name, '\0', command_length);    // Zero out exec_name
     while(command[i] != NULL && command[i] != ' ' && i < command_length){
         exec_name[i] = command[i];
         i++;
@@ -154,6 +155,7 @@ int32_t execute(const uint8_t* command){
 
     // Parse possible arguments (accepts multiple spaces b/t cmd and arg)
     int j = 0;
+    memset(next_pcb_ptr->arg, '\0', MAX_ARGS);  // Zero out PCB's args array
     if(command[i] != NULL){
         i++;
         while(command[i] != NULL && i < command_length && j<MAX_ARGS){
@@ -167,20 +169,9 @@ int32_t execute(const uint8_t* command){
         }
     }
 
-    // Add null-terminator
-    uint32_t exec_length = strlen((int8_t*)exec_name);
-    if(exec_length != command_length) {
-        exec_name[i] = NULL;        
-    }
-    uint32_t arg_length = strlen((int8_t*)next_pcb_ptr->arg);
-    if(arg_length != MAX_ARGS) {
-        next_pcb_ptr->arg[j] = NULL;        
-    }
-
     // Find file and do executable check
     //check whether file exists within directory
     int dentry_res = read_dentry_by_name(exec_name, &file_dentry);  
-    //int invalid_ftype=0;
     if(dentry_res == -1){       
         return -1;
     }
@@ -412,7 +403,7 @@ int32_t getargs(uint8_t * buf, int32_t nbytes) {
     sti();
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);
 
-    if(buf==NULL || nbytes<MAX_ARGS)       //check for valid buf and bytes to be read
+    if(buf==NULL || nbytes < MAX_ARGS)       //check for valid buf and bytes to be read
         return -1;
 
     memcpy((void*) buf, (const void*) pcb->arg, nbytes); //copy argument into buffer
