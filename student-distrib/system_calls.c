@@ -290,10 +290,10 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
     sti();
     pcb_t *pcb = (pcb_t*)(tss.esp0  & 0xFFFFE000); //ANDing the process's ESP register w/ appropriate bit mask to reach top of stack
     if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
-        return 0;
+        return -1;
 
     if(buf==NULL)
-        return 0;
+        return -1;
     
     //question is how do i initialize the pcb??
 

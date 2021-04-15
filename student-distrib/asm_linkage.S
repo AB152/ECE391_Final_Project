@@ -219,6 +219,11 @@ RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt h
 
 /*implementing assembly linkage for system calls*/
 systems_handler:
+    cmpl $1, %eax       //make sure that system call stored in %eax is between 1 and 6 (for CP3)
+    jl invalid_syscall
+    cmpl $10, %eax
+    jg invalid_syscall
+
     pushl %ebp          //save all registers, see OSDev
     pushl %edi
     pushl %esi
@@ -231,17 +236,13 @@ systems_handler:
     pushl %ecx 
     pushl %ebx 
 
-    cmpl $1, %eax       //make sure that system call stored in %eax is between 1 and 6 (for CP3)
-    jl invalid_syscall
-    cmpl $10, %eax
-    jg invalid_syscall
-
     call *systems_jump_table(,%eax,4)   //jump to the respective system call C function
     addl $12, %esp                      //clear args from stack
     jmp end_systems_handler
 
 invalid_syscall:
     movl $-1, %eax
+    iret
 
 end_systems_handler:
     popl %esp           //restore all registers
