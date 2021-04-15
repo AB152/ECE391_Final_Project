@@ -82,15 +82,15 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry){
  */ 
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     if(buf==NULL)           //check for invalid pointer
-        return -1;
+        return 0;
 
     if(inode >= boot->num_inodes)      //check if index node is out of bounds
-        return -1;
+        return 0;
     
     inode_t* curr_inode=(inode_t*)(&(fs_inode[inode])); //points to the file with inode number inode
 
     if(offset >= curr_inode->file_size) //check if offset from start of file is out of bounds
-        return -1;
+        return 0;
 
     int bytes_read;
     data_block_t* curr_data_block;

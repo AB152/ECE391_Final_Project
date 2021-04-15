@@ -4,6 +4,7 @@
 #include "types.h"
 
 #define MAX_PROCESSES 6
+#define MAX_ARGS 32
 
 //Appendix A 8.2, fops table should contain entries for open, read, write, and close
 //Note: functions are casted to pointers, otherwise C won't recognize them in struct
@@ -32,7 +33,7 @@ typedef struct{
     uint32_t parent_process_id;
     uint32_t parent_esp;
     uint32_t parent_ebp;
-    int8_t arg[100];             // holds the arguments passed by the shell cmd 
+    int8_t arg[MAX_ARGS];             // holds the arguments passed by the shell cmd 
 
 }pcb_t;
 

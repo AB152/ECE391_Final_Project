@@ -258,7 +258,7 @@ end_systems_handler:
 *0x0 is used as a placeholder since all system call numbers
 *stored in %eax are between 1 and 10, see Appendix B*/
 systems_jump_table:
-    .long bad_call, halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn 
+    .long invalid_syscall, halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn 
 
 
 

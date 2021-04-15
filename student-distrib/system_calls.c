@@ -146,16 +146,35 @@ int32_t execute(const uint8_t* command){
     dentry_t file_dentry;
 
     // Find command from entry
-    i = 0;
-    while(command[i] != NULL && command[i] != ' ' && command[i] != '\n' && i < strlen((int8_t*)command)){
+    i = 0;    
+    while(command[i] != NULL && command[i] != ' ' && i < command_length){
         exec_name[i] = command[i];
         i++;
     }
 
+    // Parse possible arguments (accepts multiple spaces b/t cmd and arg)
+    int j = 0;
+    if(command[i] != NULL){
+        i++;
+        while(command[i] != NULL && i < command_length && j<MAX_ARGS){
+            if(command[i] == ' '){
+                i++;
+                continue;
+            }
+            next_pcb_ptr->arg[j] = command[i];
+            i++;
+            j++;
+        }
+    }
+
     // Add null-terminator
     uint32_t exec_length = strlen((int8_t*)exec_name);
-    if(exec_length != strlen((int8_t*)command)){
+    if(exec_length != command_length) {
         exec_name[i] = NULL;        
+    }
+    uint32_t arg_length = strlen((int8_t*)next_pcb_ptr->arg);
+    if(arg_length != MAX_ARGS) {
+        next_pcb_ptr->arg[j] = NULL;        
     }
 
     // Find file and do executable check
@@ -279,10 +298,10 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
     sti();
     pcb_t *pcb = (pcb_t*)(tss.esp0  & 0xFFFFE000); //ANDing the process's ESP register w/ appropriate bit mask to reach top of stack
     if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
-        return -1;
+        return 0;
 
     if(buf==NULL)
-        return -1;
+        return 0;
     
     //question is how do i initialize the pcb??
 
@@ -390,6 +409,14 @@ int32_t close(int32_t fd){
  *    RETURNS: 0 on success, -1 on fail
  */
 int32_t getargs(uint8_t * buf, int32_t nbytes) {
+    sti();
+    pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);
+
+    if(buf==NULL || nbytes<MAX_ARGS)       //check for valid buf and bytes to be read
+        return -1;
+
+    memcpy((void*) buf, (const void*) pcb->arg, nbytes); //copy argument into buffer
+
     return 0;
 }
 
