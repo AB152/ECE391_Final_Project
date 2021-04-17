@@ -42,7 +42,6 @@ int32_t bad_call(){
 int32_t halt(uint8_t status){
 
     pcb_t *pcb_ptr =(pcb_t*)(tss.esp0  & 0xFFFFE000);
-
     
     //initalize pcb
     int i;
@@ -56,6 +55,12 @@ int32_t halt(uint8_t status){
     // restore paging
     set_user_page(pcb_ptr -> parent_process_id, 1);
     
+    // Close vidmap page if the halting process called it
+    if(pcb_ptr->called_vidmap) {
+        set_user_video_page(0);
+        pcb_ptr->called_vidmap = 0;
+    }
+
     // Mark PID as free
     processes[pcb_ptr->process_id] = 0;
     last_assigned_pid = pcb_ptr->parent_process_id;
@@ -68,6 +73,11 @@ int32_t halt(uint8_t status){
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
     
+    // Check to see if parent called vidmap and turn it back on if so
+    pcb_t *parent_pcb_ptr =(pcb_t*)(tss.esp0  & 0xFFFFE000);
+    if(parent_pcb_ptr->called_vidmap)
+        set_user_video_page(1);
+
     // Check for exceptions and return 256 if so
     int32_t real_status;
     if(exception_flag) {
@@ -226,6 +236,9 @@ int32_t execute(const uint8_t* command){
     processes[next_pid] = 1;
     last_assigned_pid = next_pid;
 
+    // Initialize vidmap flag
+    next_pcb_ptr->called_vidmap = 0;
+
     // Get addr exec's first instruction (bytes 24-27 of the exec file)
     uint8_t prog_entry_buf[4];
     uint32_t prog_entry_addr;
@@ -274,7 +287,9 @@ int32_t execute(const uint8_t* command){
         : "eax"                     // Clobbers
     );
 
-    return 0;
+    // Maintain program's return value
+    register int32_t retval asm("eax");
+    return retval;
 }
 
 /*
@@ -427,6 +442,10 @@ int32_t vidmap(uint8_t ** screen_start) {
         return -1;
     }
     
+    // Mark that the process called vidmap
+    pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);
+    pcb->called_vidmap = 1;
+
     // Set the page entry and copy the VirtMem address to user space
     set_user_video_page(1);
     *screen_start = (uint8_t*)TWO_FIVE_SIX_MB;

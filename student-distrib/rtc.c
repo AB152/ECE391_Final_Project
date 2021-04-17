@@ -109,8 +109,6 @@ int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes) {
     if(buf == 0)
         return -1;
 
-    // What does "rtc_write must get its input parameter through a buffer and not read the value directly." mean???
-
     // Read buffer and ignore LSB as frequency must be power of 2 excluding 1
     freq = *((uint8_t*)buf);
     index = 0;
@@ -122,7 +120,6 @@ int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes) {
     // Ignore LSB
     freq >>= 1;
     
-
     // If there is no bit set that is a power of 2 excluding 1, it's invalid
     if(freq == 0)
         return -1;
