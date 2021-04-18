@@ -157,14 +157,25 @@ int32_t execute(const uint8_t* command){
 
     // Find command from entry (IMPORTANT: Strip leading spaces?)
     i = 0;
+    int j = 0;
     memset(exec_name, '\0', command_length);    // Zero out exec_name
-    while(command[i] != NULL && command[i] != ' ' && i < command_length){
-        exec_name[i] = command[i];
+    while(command[i] != NULL && i < command_length){
+        // Strip spaces before cmd
+        if(command[i] == ' ' && j == 0) {
+            i++;
+            continue;
+        }
+        // Jump out if we read a space
+        if(command[i] == ' ' && j != 0)
+            break;
+        // Parse executable name
+        exec_name[j] = command[i];
         i++;
+        j++;
     }
 
     // Parse possible arguments (strips spaces between cmd and arg)
-    int j = 0;
+    j = 0;
     memset(next_pcb_ptr->arg, '\0', MAX_ARGS);  // Zero out PCB's args array
     if(command[i] != NULL){
         i++;

@@ -90,7 +90,8 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
         putc(((char *)(buf))[i]);
     }
 
-    // Hard coded case so that the shell prompt doesn't get deleted if we type before the prompt is printed
+    /* Stops the shell prompt from being backspaced if we type before the prompt is printed (like during fish)
+       Prints out the keyboard buffer again if the shell prompt (length 7) is the argument */
     if(!strncmp((int8_t *)buf, "391OS> ", 7)) {
         terminal_write(NULL, keyboard_buf, keyboard_buf_i);
     }
