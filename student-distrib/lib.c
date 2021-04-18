@@ -220,6 +220,11 @@ void scroll(void){
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    
+    // Ignore NULL bytes
+    if(c == '\0')
+        return;
+    
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;

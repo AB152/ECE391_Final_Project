@@ -336,7 +336,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  *    RETURNS: The return value of the desired write() function
  */
 int32_t write(int32_t fd, const void* buf, int32_t nbytes){
-    sti();
+    //sti();
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);    //temp placeholder until we figure out how to initialize the pcb
     if(fd<0 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
         return -1;
@@ -355,7 +355,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes){
  *    RETURNS: The file descriptor the opened file was assigned to, or -1 if unsuccessful
  */
 int32_t open(const uint8_t* filename){
-    sti();
+    //sti();
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);    //temp placeholder until we figure out how to initialize the pcb
     if(filename==NULL)  //check for valid file
         return -1;
@@ -407,7 +407,7 @@ int32_t open(const uint8_t* filename){
  *    RETURNS: The return value of the desired close function
  */
 int32_t close(int32_t fd){
-    sti();
+    //sti();
     pcb_t* pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000); //temp placeholder until we figure out how to initialize the pcb
     
     if(fd<2 || fd>7 || pcb->fda[fd].flags == 0) //check for valid fd index, max 8 files
@@ -427,10 +427,11 @@ int32_t close(int32_t fd){
  *    RETURNS: 0 on success, -1 on fail
  */
 int32_t getargs(uint8_t * buf, int32_t nbytes) {
-    sti();
+    //sti();
     pcb_t *pcb=(pcb_t*)(tss.esp0  & 0xFFFFE000);
 
-    if(buf==NULL || nbytes < MAX_ARGS)       //check for valid buf and bytes to be read
+    // Check for valid buf and bytes to be read, or no args were passed
+    if(buf==NULL || nbytes < MAX_ARGS || pcb->arg[0] == '\0')
         return -1;
 
     memcpy((void*) buf, (const void*) pcb->arg, nbytes); //copy argument into buffer

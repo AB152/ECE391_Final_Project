@@ -4,7 +4,7 @@
 #include "types.h"
 
 #define MAX_PROCESSES 6
-#define MAX_ARGS 32
+#define MAX_ARGS 100
 
 //Appendix A 8.2, fops table should contain entries for open, read, write, and close
 //Note: functions are casted to pointers, otherwise C won't recognize them in struct
