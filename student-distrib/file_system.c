@@ -27,7 +27,7 @@ void init_filesystem(uint32_t start){
  *    NOTES: See Appendix A
  */ 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry){
-    if(fname==NULL||dentry==NULL)   //check for invalid pointers
+    if(fname==NULL||dentry==NULL||strlen((int8_t*)fname) > 32)   //check for invalid pointers
         return -1;
 
     int i;

@@ -53,12 +53,22 @@ int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes) {
     // Block until enter ('\n') has been pressed
     while(!enter_flag);
 
-    // Copy keyboard_buf into input buf (only copy until '\n')
+    // Copy keyboard_buf into terminal buf
     (void)strncpy((int8_t *)terminal_buf, (int8_t *)keyboard_buf, n_bytes);
-    (void)strncpy((int8_t *)buf, (int8_t *)terminal_buf, n_bytes);
 
     // Copy count of chars written from keyboard
     terminal_buf_i = keyboard_buf_i;
+
+    // Strip any extraneous chars after '\n' due to race cond in issue #18's reopen
+    if(terminal_buf_i > 0) { 
+        if(terminal_buf[terminal_buf_i - 1] != '\n') {
+            terminal_buf[terminal_buf_i - 1] = '\0';
+            terminal_buf_i--;
+        }
+    }
+
+    // Copy terminal_buf to input buf
+    (void)strncpy((int8_t *)buf, (int8_t *)terminal_buf, n_bytes);
 
     // Reset so the keyboard buffer can write to its normal size
     terminal_buf_n_bytes = KEYBOARD_BUF_SIZE;

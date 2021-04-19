@@ -30,9 +30,6 @@ int keyboard_buf_i;
 // Tracks if enter was pressed so terminal_read can continue
 volatile int enter_flag;
 
-// Flag to reset keyboard buffer
-int should_clear;
-
 // Keyboard flags
 int left_shift_flag;
 
