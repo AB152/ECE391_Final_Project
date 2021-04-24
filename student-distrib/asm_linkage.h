@@ -33,6 +33,7 @@ extern void machine_check();        //exception 18
 extern void simd_floating_point();  //exception 19
 extern void keyboard_processor();   //process keyboard interrupt
 extern void RTC_processor();        //process RTC interrupt
+extern void PIT_processor();
 extern void systems_handler();      //process systems call arg
 
 #endif /* ASM */

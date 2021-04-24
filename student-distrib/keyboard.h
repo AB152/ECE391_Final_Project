@@ -17,6 +17,9 @@
 #define LEFT_ALT_RELEASED       0xB8
 #define KEYBOARD_BUF_SIZE       128
 #define KEYBOARD_BUF_CHAR_MAX   127
+#define TERMINAL_ONE            0x3B
+#define TERMINAL_TWO            0x3C
+#define TERMINAL_THREE          0x3D
 
 // Line buffer for keyboard entries
 char keyboard_buf[KEYBOARD_BUF_SIZE];

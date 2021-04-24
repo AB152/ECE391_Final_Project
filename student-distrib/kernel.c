@@ -14,6 +14,8 @@
 #include "paging.h"
 #include "file_system.h"
 #include "system_calls.h"
+#include "pit.h"
+#include "terminal.h"
 
 #define RUN_TESTS
 
@@ -158,11 +160,17 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Enable paging */
     init_paging();
 
+    // Initialize multi-terminal
+    init_terminal();
+    
     // Initialize RTC interrupts
     init_RTC();
 
     // Initialize Keyboard
     init_keyboard();
+
+    // Initialize PIT
+    init_PIT();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

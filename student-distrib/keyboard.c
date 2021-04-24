@@ -106,8 +106,8 @@ void keyboard_handler() {
             break;
     }
 
-    // Ignore key releases (F1 pressed is 0x3B, any scan codes greater than that are releases)
-    if(scan_code >= 0x3B || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||
+    // Ignore key releases (F4 pressed is 0x3B, any scan codes greater than that are releases)
+    if(scan_code >= 0x3E || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||
         scan_code == LEFT_CTRL_PRESSED || scan_code == LEFT_ALT_PRESSED) {
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -151,8 +151,22 @@ void keyboard_handler() {
         return;
     }
 
+    // Case for alt flag for terminal switching
     if(alt_flag) {
-        // Case for alt flag
+        // Alt + F1
+        if(scan_code==TERMINAL_ONE){    
+            terminal_switcher(0);       //pass in terminal id to switch to
+        }
+
+        // Alt + F2
+        if(scan_code==TERMINAL_TWO){
+            terminal_switcher(1);
+        }
+
+        // Alt + F3
+        if(scan_code == TERMINAL_THREE) {
+            terminal_switcher(2);
+        }
     }
 
     /* IMPORTANT */

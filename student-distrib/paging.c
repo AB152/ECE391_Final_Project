@@ -12,6 +12,7 @@
 
 
 #include "paging.h"
+#include "lib.h"
 
 /* NOTES: Kernel already loaded at FOUR_MB and should be a single 4MB page.
           VidMem already loaded at VIDEO (see paging.h) and should be a single 4KB page.
@@ -64,10 +65,9 @@ void init_paging() {
         // Place blank entry in user video table (placed here to avoid next if case)
         user_video_table[i] = page;
         
-        // Initialize one page table entry for kernel vidmem
-        if(i == (VIDMEM>>12)) {
+        // Mark page table entries for kernel vidmem and the 3 terminals as present
+        if(i >= VIDMEM_PAGE_BASE && i <= VIDMEM_PAGE_BASE + 3) {
             page.present = 1;   
-            page.page_base_address = VIDMEM >> 12;
         }   
         
         // Place entry in kernel video memory page table 
@@ -173,7 +173,7 @@ void set_user_page(uint32_t pid, int32_t present_flag) {
  */
 void set_user_video_page(int32_t present_flag) {
     user_video_table[0].present = present_flag;            // Mark table entry as present
-    user_video_table[0].page_base_address = VIDMEM >> 12;  // Set page to point to video memory
+    user_video_table[0].page_base_address = VIDMEM_PAGE_BASE;  // Set page to point to video memory
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.present = present_flag;        //present b/c page is being initialized
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.read_write = 1;     //all pages are marked read/write for mp3
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.user_supervisor = 1;    //1 for user-level pages
@@ -186,6 +186,27 @@ void set_user_video_page(int32_t present_flag) {
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.available = 0;  //not used at all in mp3
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.page_table_addr = (unsigned)user_video_table >> 12; //shift address of table for 4KB align
     flush_tlb();
+}
+
+/*
+ * set_active_terminal_page
+ *    DESCRIPTION: Sets up page for user to interact with video memory
+ *    INPUTS: from_terminal_id -- the id of the terminal to switch from
+ *            to_terminal_id -- the id of the terminal to switch to
+ *    RETURNS: none  
+ *    SIDE EFFECTS: Changes the kernel video memory page to track the desired terminal's video page
+ *    NOTES: 
+ */
+void change_terminal_video_page(int32_t from_terminal_id, int32_t to_terminal_id) {
+    // Bounds check
+    if(from_terminal_id < 0 || from_terminal_id > 2 || to_terminal_id < 0 || to_terminal_id > 2)
+        return;
+
+    // Save current terminal's screen to its video page
+    memcpy((void *)(VIDMEM + (from_terminal_id + 1) * FOUR_KB), (void *)VIDMEM, FOUR_KB);
+
+    // Restore new terminal's screen to video memory
+    memcpy((void *)VIDMEM, (void *)(VIDMEM + (to_terminal_id + 1) * FOUR_KB), FOUR_KB);
 }
 
 /*  

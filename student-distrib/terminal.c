@@ -4,6 +4,25 @@
 
 #include "terminal.h"
 #include "lib.h"
+#include "paging.h"
+#include "system_calls.h"
+
+// Array of terminals to track the 3 running terminals
+terminal_t terminals[MAX_TERMINALS];
+int32_t curr_terminal=0;
+
+void init_terminal(){
+    // Find next available terminal ID to assign
+    int i, j, next_id; 
+    for(i = 0; i < MAX_TERMINALS; i++) {    
+        terminals[i].terminal_id=i;
+        for(j=0; j<KEYBOARD_BUF_SIZE; j++){
+            terminals[i].term_kb_buf[j]='\0';
+        }
+    }
+}
+
+
 
 /*
  * terminal_open
@@ -107,4 +126,27 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
     }
 
     return i;
+}
+
+/*
+ * terminal_switcher
+ *    DESCRIPTION: Switches to the desired terminal
+ *    INPUTS: terminal_id -- the terminal to switch to
+ *    OUTPUTS: none
+ *    RETURN VALUE: none
+ *    SIDE EFFECTS: Switches to the desired terminal (including video page)
+ */
+void terminal_switcher(int32_t terminal_id) {
+    pcb_t pcb;
+
+
+    if(terminal_id==curr_terminal)  //check if we are switching to same terminal
+        return;
+
+    // Set video memory page
+    change_terminal_video_page(curr_terminal, terminal_id);
+
+    // Switch execution to new terminal's user program
+
+    curr_terminal=terminal_id;  //update current terminal id to the one we switch to
 }

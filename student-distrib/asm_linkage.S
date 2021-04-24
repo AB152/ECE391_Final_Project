@@ -217,6 +217,14 @@ RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt h
     sti 
     iret 
 
+PIT_processor:
+    cli 
+    pushal 
+    call PIT_handler
+    popal 
+    sti 
+    iret 
+
 /*implementing assembly linkage for system calls*/
 systems_handler:
     cmpl $1, %eax       //make sure that system call stored in %eax is between 1 and 6 (for CP3)
