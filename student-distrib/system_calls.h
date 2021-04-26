@@ -38,6 +38,8 @@ typedef struct{
 
 }pcb_t;
 
+static uint32_t last_assigned_pid;      //keeps track of current pid
+
 int32_t bad_call();
 
 void bootup_terminals();

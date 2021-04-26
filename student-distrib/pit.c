@@ -7,7 +7,7 @@
 
 /*
  * init_PIT
- *    DESCRIPTION: Initialize PIT to 25Hz/40ms and turns on IRQ0
+ *    DESCRIPTION: Initialize PIT to 100Hz/10ms and turns on IRQ0 
  *    INPUTS: none
  *    OUTPUTS: none
  *    RETURNS: none
@@ -34,5 +34,6 @@ void init_PIT(){
  *    NOTES: 
  */ 
 void PIT_handler(){
+    send_eoi(PIT_IRQ);  //supplemental session included this before calling scheduler helper
     scheduler();        //PIT handler calls scheduling algorithm
 }

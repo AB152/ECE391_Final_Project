@@ -14,10 +14,12 @@ void init_terminal(){
     int i, j, next_id; 
     curr_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
+        terminals[i].terminal_pcb = NULL;
         terminals[i].terminal_id=i;
         terminals[i].cursor_x = 0;
         terminals[i].cursor_y = 0;
-        terminals[i].terminal_pcb = NULL;
+        terminals[i].current_pid=-1;
+        
         for(j=0; j<KEYBOARD_BUF_SIZE; j++){
             terminals[i].term_kb_buf[j]='\0';
         }
