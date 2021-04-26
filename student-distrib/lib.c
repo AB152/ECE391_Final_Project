@@ -183,17 +183,37 @@ void enable_cursor(void) {
 /* void update_cursor(int, int)
  * Inputs: (x, y) -- coordinate of screen to move cursor to
  * Return Value: void
- *    Function: Moves text-mode cursor to (x,y) of screen 
+ *    Function: Moves text-mode cursor to (x,y) of screen and updates screen coordinates
  *    See link: (https://wiki.osdev.org/Text_Mode_Cursor) */
 void update_cursor(int x, int y)
 {
 	uint16_t pos = y * NUM_COLS + x;
  
+    // Update screen_x and screen_y (when switching terminals, redundant otherwise)
+    screen_x = x;
+    screen_y = y;
+
     // Set corresponding VGA register bits to update cursor
 	outb(0x0F, 0x3D4);
 	outb((uint8_t) (pos & 0xFF), 0x3D5);            // Bitmask and update x-coordinate
 	outb(0x0E, 0x3D4);
 	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);     // Bitmask and update y-coordinate
+}
+
+/* int get_screen_x(void);
+ * Inputs: none
+ * Return Value: The x-coordinate of the screen
+ */
+int get_screen_x() {
+    return screen_x;
+}
+
+/* int get_screen_y(void);
+ * Inputs: none
+ * Return Value: The y-coordinate of the screen
+ */
+int get_screen_y() {
+    return screen_y;
 }
 
 /* void scroll(void);

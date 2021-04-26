@@ -7,15 +7,17 @@
 #include "paging.h"
 #include "system_calls.h"
 
-// Array of terminals to track the 3 running terminals
-terminal_t terminals[MAX_TERMINALS];
-int32_t curr_terminal=0;
+
 
 void init_terminal(){
     // Find next available terminal ID to assign
     int i, j, next_id; 
+    curr_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
         terminals[i].terminal_id=i;
+        terminals[i].cursor_x = 0;
+        terminals[i].cursor_y = 0;
+        terminals[i].terminal_pcb = NULL;
         for(j=0; j<KEYBOARD_BUF_SIZE; j++){
             terminals[i].term_kb_buf[j]='\0';
         }
@@ -137,16 +139,20 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
  *    SIDE EFFECTS: Switches to the desired terminal (including video page)
  */
 void terminal_switcher(int32_t terminal_id) {
-    pcb_t pcb;
-
-
     if(terminal_id==curr_terminal)  //check if we are switching to same terminal
         return;
 
     // Set video memory page
     change_terminal_video_page(curr_terminal, terminal_id);
 
-    // Switch execution to new terminal's user program
+    // Preserve and update keyboard buffer and coordinates for screen and cursor
+    memcpy(&(terminals[curr_terminal].term_kb_buf), keyboard_buf, KEYBOARD_BUF_SIZE);
+    memcpy(keyboard_buf, &(terminals[terminal_id].term_kb_buf), KEYBOARD_BUF_SIZE);
+    terminals[curr_terminal].cursor_x = get_screen_x();
+    terminals[curr_terminal].cursor_y = get_screen_y();
+    update_cursor(terminals[terminal_id].cursor_x, terminals[terminal_id].cursor_y);
+
+    // Switch execution to new terminal's user program (unneeded due to scheduling?)
 
     curr_terminal=terminal_id;  //update current terminal id to the one we switch to
 }

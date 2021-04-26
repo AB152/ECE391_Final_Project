@@ -11,10 +11,16 @@
 #define MAX_TERMINALS 3
 
 typedef struct{
+    pcb_t* terminal_pcb;
     int32_t terminal_id;    //keeps track of which terminal we are on
     char term_kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
-
+    int32_t cursor_x;
+    int32_t cursor_y;
 }terminal_t;
+
+// Array of terminals to track the 3 running terminals
+terminal_t terminals[MAX_TERMINALS];
+int32_t curr_terminal;
 
 // Terminal's copy of keyboard_buf before it gets cleared
 char terminal_buf[KEYBOARD_BUF_SIZE];

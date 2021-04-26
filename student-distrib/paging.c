@@ -189,7 +189,7 @@ void set_user_video_page(int32_t present_flag) {
 }
 
 /*
- * set_active_terminal_page
+ * change_terminal_video_page
  *    DESCRIPTION: Sets up page for user to interact with video memory
  *    INPUTS: from_terminal_id -- the id of the terminal to switch from
  *            to_terminal_id -- the id of the terminal to switch to
@@ -207,6 +207,7 @@ void change_terminal_video_page(int32_t from_terminal_id, int32_t to_terminal_id
 
     // Restore new terminal's screen to video memory
     memcpy((void *)VIDMEM, (void *)(VIDMEM + (to_terminal_id + 1) * FOUR_KB), FOUR_KB);
+    flush_tlb();
 }
 
 /*  

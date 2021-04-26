@@ -156,16 +156,22 @@ void keyboard_handler() {
         // Alt + F1
         if(scan_code==TERMINAL_ONE){    
             terminal_switcher(0);       //pass in terminal id to switch to
+            send_eoi(KEYBOARD_IRQ);
+            return;
         }
 
         // Alt + F2
         if(scan_code==TERMINAL_TWO){
             terminal_switcher(1);
+            send_eoi(KEYBOARD_IRQ);
+            return;
         }
 
         // Alt + F3
         if(scan_code == TERMINAL_THREE) {
             terminal_switcher(2);
+            send_eoi(KEYBOARD_IRQ);
+            return;
         }
     }
 
