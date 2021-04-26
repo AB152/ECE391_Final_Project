@@ -40,6 +40,7 @@ typedef struct{
 
 int32_t bad_call();
 
+void bootup_terminals();
 
 /*required functions for CP3/CP4, function formats in Appendix B*/
 int32_t halt(uint8_t status);

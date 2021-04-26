@@ -34,6 +34,5 @@ void init_PIT(){
  *    NOTES: 
  */ 
 void PIT_handler(){
-    send_eoi(PIT_IRQ);
     scheduler();        //PIT handler calls scheduling algorithm
 }

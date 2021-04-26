@@ -128,7 +128,6 @@ int32_t execute(const uint8_t* command){
         if(i == MAX_PROCESSES - 1)
             return -1;
     }
-    
 
     // Allocate PCB
     // Calculate pointer to next PCB
@@ -259,7 +258,7 @@ int32_t execute(const uint8_t* command){
     // Prepare TSS for context switch
     tss.esp0 = EIGHT_MB - (next_pid * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
-
+    
     if(next_pid == 0){
         next_pcb_ptr->parent_esp = NULL;
         next_pcb_ptr->parent_ebp = NULL;
@@ -302,6 +301,148 @@ int32_t execute(const uint8_t* command){
     register int32_t retval asm("eax");
     return retval;
 }
+
+
+
+/*
+ * bootup_terminals
+ *    DESCRIPTION: Boots up all 3 terminals
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURNS: none
+ *    SIDE EFFECTS: Boots up all 3 terminals
+ */
+void bootup_terminals(){
+
+    // Assign PIDs 0-2 for the first 3 shells
+    int i, k, next_pid;
+    dentry_t file_dentry;
+    for(next_pid = 0; next_pid < 3; next_pid++){
+        // Allocate PCB
+        // Calculate pointer to next PCB
+        pcb_t * next_pcb_ptr = (pcb_t *)(EIGHT_MB - ((next_pid + 1) * EIGHT_KB));
+
+        // Initialize every fda entry and activate stdin and stdout
+        for(i = 0; i < 2; i++) {
+            next_pcb_ptr->fda[i].inode = 0;
+            next_pcb_ptr->fda[i].file_pos = 0;
+            next_pcb_ptr->fda[i].flags = 1;
+        }
+        for(i = 2; i < 8; i++) {
+            next_pcb_ptr->fda[i].inode = 0;
+            next_pcb_ptr->fda[i].file_pos = 0;
+            next_pcb_ptr->fda[i].flags = 0;
+        }
+
+        // Set up fops tables for stdin and stdout respectively in the new pcb
+        next_pcb_ptr->fda[0].fops_table_ptr = stdin_table;
+        next_pcb_ptr->fda[1].fops_table_ptr = stdout_table;
+
+        // Parse command
+        uint32_t command_length = strlen("shell");
+        uint8_t exec_name[command_length];
+
+        // Find command from entry (IMPORTANT: Strip leading spaces?)
+        i = 0;
+        int j = 0;
+        memset(exec_name, '\0', command_length);    // Zero out exec_name
+        while(command[i] != NULL && i < command_length){
+            // Strip spaces before cmd
+            if(command[i] == ' ' && j == 0) {
+                i++;
+                continue;
+            }
+            // Jump out if we read a space
+            if(command[i] == ' ' && j != 0)
+                break;
+            // Parse executable name
+            exec_name[j] = command[i];
+            i++;
+            j++;
+        }
+
+        // Parse possible arguments (strips spaces between cmd and arg)
+        j = 0;
+        memset(next_pcb_ptr->arg, '\0', MAX_ARGS);  // Zero out PCB's args array
+
+
+        // Find file and do executable check
+        //check whether file exists within directory
+        int dentry_res = read_dentry_by_name(exec_name, &file_dentry);  
+        if(dentry_res == -1){       
+            return -1;
+        }
+
+        // Copy program file to allocated page
+        // Allocate Page and flush TLB
+        set_user_page(next_pid, 1); // Set present bit in execute and 0 in halt
+        
+        // Load executable into user page
+        int val = read_data(file_dentry.inode, 0, (uint8_t*)PROG_IMG_ADDR, 100000);
+        if(val == -1){
+            set_user_page(next_pid, 0);
+            return -1;
+        }
+
+
+        next_pcb_ptr->parent_process_id=0;
+        next_pcb_ptr->process_id=0;
+
+        // Mark PID as in use and set PCB
+        processes[next_pid] = 1;
+
+        // Initialize vidmap flag
+        next_pcb_ptr->called_vidmap = 0;
+
+        next_pcb_ptr->parent_esp = NULL;
+        next_pcb_ptr->parent_ebp = NULL;
+    }
+
+    // Terminal 0 is the initial parent
+    last_assigned_pid = 0;
+
+    // Get addr exec's first instruction (bytes 24-27 of the exec file)
+    uint8_t prog_entry_buf[4];
+    uint32_t prog_entry_addr;
+    read_data(file_dentry.inode, 24, prog_entry_buf, 4);
+    prog_entry_addr = *((uint32_t*)prog_entry_buf);
+
+    // Prepare TSS for context switch
+    tss.esp0 = EIGHT_MB - (0 * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
+    tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
+    
+    // Push items to stack and context switch using IRET
+    asm volatile (
+        
+        "movl %1, %%ds;"
+        
+        "pushl %1;"                 //push USER_DS, 0x2B
+        
+        "pushl $0x083ffffc;"        // Set ESP to point to the user page
+        
+        "pushfl;"                   //push flags
+        "popl %%eax;"
+        "orl $0x200, %%eax;"        //sets bit 9 to 1 in the flags register to sti
+        "pushl %%eax;"
+
+        "pushl %2;"                 //push USER_CS, 0x23
+        
+        "pushl %0;"                 // Push the addr of exec's first instruction for EIP
+
+        "iret;"
+
+        "EXECUTE_LABEL: "
+        :                       // No Outputs
+        : "r"(prog_entry_addr), "r"(USER_DS), "r"(USER_CS)      // Inputs
+        : "eax"                     // Clobbers
+    );
+
+    
+    return;
+}
+
+
+
 
 /*
  * read

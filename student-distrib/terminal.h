@@ -16,6 +16,7 @@ typedef struct{
     char term_kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
     int32_t cursor_x;
     int32_t cursor_y;
+    int32_t current_pid;
 }terminal_t;
 
 // Array of terminals to track the 3 running terminals
