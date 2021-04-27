@@ -33,6 +33,7 @@
 .globl keyboard_processor
 .globl RTC_processor
 .globl systems_handler
+.globl PIT_processor
 
 /*
 * moving esp into eax is unnecessary

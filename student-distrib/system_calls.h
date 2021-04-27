@@ -25,20 +25,20 @@ typedef struct file_descriptor_t {
 } file_descriptor_t;
 
 //Process control block (PCB) struct described in Appendix A 8.2
-typedef struct{
+typedef struct pcb {
     file_descriptor_t fda[8];    //up to 8 open files are represented with a file array in PCB
     uint32_t process_id;
-    // uint32_t esp;
-    // uint32_t ebp;
     uint32_t parent_process_id;
     uint32_t parent_esp;
     uint32_t parent_ebp;
     uint8_t called_vidmap;
     int8_t arg[MAX_ARGS];             // holds the arguments passed by the shell cmd 
-
+    struct pcb * parent_pcb;
 }pcb_t;
 
-static uint32_t last_assigned_pid;      //keeps track of current pid
+
+
+//static uint32_t last_assigned_pid;      //keeps track of current pid
 
 int32_t bad_call();
 

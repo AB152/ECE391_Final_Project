@@ -169,9 +169,6 @@ void entry(unsigned long magic, unsigned long addr) {
     // Initialize Keyboard
     init_keyboard();
 
-    // // Boot up all 3 shells
-    // bootup_terminals();
-
     // Initialize PIT
     init_PIT();         //note: pit scheduling algorithm handles terminal bootup
 

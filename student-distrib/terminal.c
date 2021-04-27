@@ -8,17 +8,25 @@
 #include "system_calls.h"
 
 
-
+/*
+ * init_terminal
+ *    DESCRIPTION: Initalizes all terminal-related variables
+ *    INPUTS: none
+ *    OUTPUTS: none
+ *    RETURN VALUE: none
+ *    SIDE EFFECTS: Initializes all terminal-related vars
+ */
 void init_terminal(){
     // Find next available terminal ID to assign
-    int i, j, next_id; 
-    curr_terminal = 0;
+    int i, j; 
+    curr_terminal = -1;
+    visible_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
-        terminals[i].terminal_pcb = NULL;
+        terminals[i].terminal_pcb = NULL;   //will be implemented in scheduler
         terminals[i].terminal_id=i;
         terminals[i].cursor_x = 0;
         terminals[i].cursor_y = 0;
-        terminals[i].current_pid=-1;
+        terminals[i].last_assigned_pid=-1;        //flag as no process running
         
         for(j=0; j<KEYBOARD_BUF_SIZE; j++){
             terminals[i].term_kb_buf[j]='\0';
@@ -26,15 +34,13 @@ void init_terminal(){
     }
 }
 
-
-
 /*
  * terminal_open
- *    DESCRIPTION: Initalizes all terminal-related variables
+ *    DESCRIPTION: Clears terminal's keyboard buffer
  *    INPUTS: none
  *    OUTPUTS: none
  *    RETURN VALUE: Always 0
- *    SIDE EFFECTS: Initializes all terminal-related vars
+ *    SIDE EFFECTS: Clears terminal's keyboard buffer
  */
 int32_t terminal_open(int32_t fd) {
     int i = 0;
@@ -46,7 +52,7 @@ int32_t terminal_open(int32_t fd) {
 
 /*
  * terminal_close
- *    DESCRIPTION: Clears all terminal-related variables
+ *    DESCRIPTION: Clears all terminal-related variables, but this should never be called
  *    INPUTS: none
  *    OUTPUTS: none
  *    RETURN VALUE: Always -1 as it should never be closed
@@ -124,7 +130,7 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
     }
 
     /* Stops the shell prompt from being backspaced if we type before the prompt is printed (like during fish)
-       Prints out the keyboard buffer again if the shell prompt (length 7) is the argument */
+       Echos the keyboard buffer again if the shell prompt (length 7) is the argument */
     if(!strncmp((int8_t *)buf, "391OS> ", 7)) {
         terminal_write(NULL, keyboard_buf, keyboard_buf_i);
     }
@@ -141,20 +147,18 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
  *    SIDE EFFECTS: Switches to the desired terminal (including video page)
  */
 void terminal_switcher(int32_t terminal_id) {
-    if(terminal_id==curr_terminal)  //check if we are switching to same terminal
+    if(terminal_id==visible_terminal)  //check if we are switching to same terminal
         return;
 
     // Set video memory page
-    change_terminal_video_page(curr_terminal, terminal_id);
+    change_terminal_video_page(visible_terminal, terminal_id);
 
     // Preserve and update keyboard buffer and coordinates for screen and cursor
-    memcpy(&(terminals[curr_terminal].term_kb_buf), keyboard_buf, KEYBOARD_BUF_SIZE);
+    memcpy(&(terminals[visible_terminal].term_kb_buf), keyboard_buf, KEYBOARD_BUF_SIZE);
     memcpy(keyboard_buf, &(terminals[terminal_id].term_kb_buf), KEYBOARD_BUF_SIZE);
-    terminals[curr_terminal].cursor_x = get_screen_x();
-    terminals[curr_terminal].cursor_y = get_screen_y();
+    terminals[visible_terminal].cursor_x = get_screen_x();
+    terminals[visible_terminal].cursor_y = get_screen_y();
     update_cursor(terminals[terminal_id].cursor_x, terminals[terminal_id].cursor_y);
 
-    // Switch execution to new terminal's user program (unneeded due to scheduling?)
-
-    curr_terminal=terminal_id;  //update current terminal id to the one we switch to
+    visible_terminal=terminal_id;  //update visible terminal id to the one we switch to
 }

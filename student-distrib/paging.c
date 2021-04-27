@@ -13,6 +13,7 @@
 
 #include "paging.h"
 #include "lib.h"
+#include "terminal.h"
 
 /* NOTES: Kernel already loaded at FOUR_MB and should be a single 4MB page.
           VidMem already loaded at VIDEO (see paging.h) and should be a single 4KB page.
@@ -138,15 +139,15 @@ void init_paging() {
 }
 
 /*  
- * set_user_page
+ * set_user_prog_page
  *    DESCRIPTION: Re-maps the user program page for the process with pid
  *    INPUTS: pid -- ID of process
  *            present_flag -- set to 0 to mark page not present, 1 to mark as present
  *    RETURNS: none  
- *    SIDE EFFECTS: Sets up user page in PhysMem
+ *    SIDE EFFECTS: Maps user program page (virtual addr 128MB) to PhysMem
  *    NOTES: 
  */
-void set_user_page(uint32_t pid, int32_t present_flag) {
+void set_user_prog_page(uint32_t pid, int32_t present_flag) {
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.present = present_flag;
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.read_write = 1;     //all pages are marked read/write for mp3
     page_directory[USER_PAGE_BASE_ADDR].pd_mb.user_supervisor = 1;    //1 for user pages
@@ -168,12 +169,18 @@ void set_user_page(uint32_t pid, int32_t present_flag) {
  *    DESCRIPTION: Sets up page for user to interact with video memory
  *    INPUTS: present_flag -- set to 0 to mark page not present, 1 to mark as present
  *    RETURNS: none  
- *    SIDE EFFECTS: Sets up video page for user use
+ *    SIDE EFFECTS: Configures user video page at virt addr 256MB
  *    NOTES: 
  */
 void set_user_video_page(int32_t present_flag) {
     user_video_table[0].present = present_flag;            // Mark table entry as present
-    user_video_table[0].page_base_address = VIDMEM_PAGE_BASE;  // Set page to point to video memory
+    
+    // Check if vidmap should be writing to screen or to background 
+    if(visible_terminal == curr_terminal)
+        user_video_table[0].page_base_address = VIDMEM_PAGE_BASE;  // Set page to point to physical video memory
+    else
+        user_video_table[0].page_base_address = VIDMEM_PAGE_BASE + curr_terminal + 1; // Set page to point to BGround 
+    
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.present = present_flag;        //present b/c page is being initialized
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.read_write = 1;     //all pages are marked read/write for mp3
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.user_supervisor = 1;    //1 for user-level pages
@@ -190,7 +197,7 @@ void set_user_video_page(int32_t present_flag) {
 
 /*
  * change_terminal_video_page
- *    DESCRIPTION: Sets up page for user to interact with video memory
+ *    DESCRIPTION: Helper function to save and copy video memory for visible terminal switching
  *    INPUTS: from_terminal_id -- the id of the terminal to switch from
  *            to_terminal_id -- the id of the terminal to switch to
  *    RETURNS: none  
@@ -207,6 +214,32 @@ void change_terminal_video_page(int32_t from_terminal_id, int32_t to_terminal_id
 
     // Restore new terminal's screen to video memory
     memcpy((void *)VIDMEM, (void *)(VIDMEM + (to_terminal_id + 1) * FOUR_KB), FOUR_KB);
+    flush_tlb();
+}
+
+/*
+ * redirect_vidmem_page
+ *    DESCRIPTION: Helper function to remap where virtual addr 0xB8000 for vidmem maps to physically
+ *    INPUTS: terminal_id -- The terminal id that wants to write to its video page 
+ *    OUTPUTS: none
+ *    RETURNS: none 
+ *    NOTES: This would only be used for a terminal that is currently scheduled to run but isn't
+ *           the currently visible terminal. After this is called, all writes to vidmem will be redirected
+ *           to the video page corresponding to terminal_id.
+ */ 
+void redirect_vidmem_page(int32_t terminal_id) {
+
+    // Bounds check
+    if(terminal_id < 0 || terminal_id > 2)
+        return;
+
+    // Redirect kernel vidmem page (if it's the currently visible terminal, automatically reset it)
+    if(curr_terminal == visible_terminal)
+        page_table_one[VIDMEM_PAGE_BASE].page_base_address = VIDMEM_PAGE_BASE;
+    
+    else
+        page_table_one[VIDMEM_PAGE_BASE].page_base_address = VIDMEM_PAGE_BASE + terminal_id + 1;
+
     flush_tlb();
 }
 

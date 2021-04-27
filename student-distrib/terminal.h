@@ -11,17 +11,18 @@
 #define MAX_TERMINALS 3
 
 typedef struct{
-    pcb_t* terminal_pcb;
+    struct pcb* terminal_pcb;
     int32_t terminal_id;    //keeps track of which terminal we are on
     int32_t cursor_x;
     int32_t cursor_y;
-    int32_t current_pid;
+    int32_t last_assigned_pid;    //keeps track of last assigned pid of the terminal
     char term_kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
 }terminal_t;
 
 
 terminal_t terminals[MAX_TERMINALS];    // Array of terminals to track the 3 running terminals
-int32_t curr_terminal;  //keeps track of which terminal is running
+int32_t curr_terminal;  // keeps track of which terminal the scheduler is running
+int32_t visible_terminal; // tracks the terminal_id of the currently visible terminal
 
 // Terminal's copy of keyboard_buf before it gets cleared
 char terminal_buf[KEYBOARD_BUF_SIZE];

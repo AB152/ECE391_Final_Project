@@ -17,8 +17,7 @@ fops_jump_table_t stdout_table = {bad_call,terminal_write,bad_call,bad_call};
 
 fops_jump_table_t bad_table = {bad_call,bad_call,bad_call,bad_call};
 
-// Array of flags (should they be PCBs?) to track currently running processes
-uint32_t processes[MAX_PROCESSES] = {0, 0, 0, 0, 0, 0};
+uint32_t processes[MAX_PROCESSES] = {0, 0, 0, 0, 0, 0}; // Array of flags (should they be PCBs?) to track currently running processes
 
 
 
@@ -41,7 +40,7 @@ int32_t bad_call(){
  */
 int32_t halt(uint8_t status){
 
-    pcb_t *pcb_ptr =(pcb_t*)(tss.esp0  & 0xFFFFE000);
+    pcb_t *pcb_ptr =(pcb_t*)terminals[curr_terminal].terminal_pcb;  //initialize to current running terminal's pcb
     
     //initalize pcb
     int i;
@@ -53,7 +52,7 @@ int32_t halt(uint8_t status){
     }
     
     // restore paging
-    set_user_page(pcb_ptr -> parent_process_id, 1);
+    set_user_prog_page(pcb_ptr -> parent_process_id, 1);
     
     // Close vidmap page if the halting process called it
     if(pcb_ptr->called_vidmap) {
@@ -63,18 +62,19 @@ int32_t halt(uint8_t status){
 
     // Mark PID as free
     processes[pcb_ptr->process_id] = 0;
-    last_assigned_pid = pcb_ptr->parent_process_id;
+    terminals[curr_terminal].last_assigned_pid = pcb_ptr->parent_process_id;
 
     // Check if we're at base shell and spawn new base shell if so
     if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
         execute((uint8_t*)"shell");
     }
     
+    // Update TSS to return to parent context
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
     
     // Check to see if parent called vidmap and turn it back on if so
-    pcb_t *parent_pcb_ptr =(pcb_t*)(tss.esp0  & 0xFFFFE000);
+    pcb_t *parent_pcb_ptr = (pcb_t*)(tss.esp0  & 0xFFFFE000);
     if(parent_pcb_ptr->called_vidmap)
         set_user_video_page(1);
 
@@ -199,13 +199,13 @@ int32_t execute(const uint8_t* command){
 
     // Copy program file to allocated page
     // Allocate Page and flush TLB
-    set_user_page(next_pid, 1); // Set present bit in execute and 0 in halt
+    set_user_prog_page(next_pid, 1); // Set present bit in execute and 0 in halt
     
     // Load executable into user page
     int val = read_data(file_dentry.inode, 0, (uint8_t*)PROG_IMG_ADDR, 100000);
     if(val == -1){
-        set_user_page(next_pid, 0);
-        set_user_page(last_assigned_pid, 1);
+        set_user_prog_page(next_pid, 0);
+        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
         return -1;
     }
 
@@ -213,42 +213,51 @@ int32_t execute(const uint8_t* command){
     uint8_t elf_check[4];
     read_data(file_dentry.inode, 0, elf_check, 4);
     if(elf_check[0] != 0x7f){
-        set_user_page(next_pid, 0);
-        set_user_page(last_assigned_pid, 1);
+        set_user_prog_page(next_pid, 0);
+        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[1] != 0x45){
-        set_user_page(next_pid, 0);
-        set_user_page(last_assigned_pid, 1);
+        set_user_prog_page(next_pid, 0);
+        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[2] != 0x4c){
-        set_user_page(next_pid, 0);
-        set_user_page(last_assigned_pid, 1);
+        set_user_prog_page(next_pid, 0);
+        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[3] != 0x46){
-        set_user_page(next_pid, 0);
-        set_user_page(last_assigned_pid, 1);
+        set_user_prog_page(next_pid, 0);
+        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
         return -1;
     }
 
-    if(next_pid==0){    //first process
+    if(next_pid==0){    //first process of terminal 1
         next_pcb_ptr->parent_process_id=0;
         next_pcb_ptr->process_id=0;
     }
+    else if(next_pid==1){    //first process of terminal 2
+        next_pcb_ptr->parent_process_id=1;
+        next_pcb_ptr->process_id=1;
+    }
+    else if(next_pid==2){    //first process of terminal 3
+        next_pcb_ptr->parent_process_id=2;
+        next_pcb_ptr->process_id=2;
+    }
     else{
-        next_pcb_ptr->parent_process_id=last_assigned_pid;
+        next_pcb_ptr->parent_process_id=terminals[curr_terminal].last_assigned_pid;
         next_pcb_ptr->process_id=next_pid;
     }
 
     // Mark PID as in use and set PCB
     processes[next_pid] = 1;
-    last_assigned_pid = next_pid;
+    terminals[curr_terminal].last_assigned_pid = next_pid;
 
+    
     // Initialize vidmap flag
     next_pcb_ptr->called_vidmap = 0;
-
+    
     // Get addr exec's first instruction (bytes 24-27 of the exec file)
     uint8_t prog_entry_buf[4];
     uint32_t prog_entry_addr;
@@ -270,6 +279,9 @@ int32_t execute(const uint8_t* command){
                     : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
         );   
     }
+    
+    next_pcb_ptr->parent_pcb = terminals[curr_terminal].terminal_pcb;
+    terminals[curr_terminal].terminal_pcb=next_pcb_ptr; //update pcb pointer for current terminal
     
     // Push items to stack and context switch using IRET
     asm volatile (
@@ -379,12 +391,12 @@ int32_t execute(const uint8_t* command){
 
 //         // Copy program file to allocated page
 //         // Allocate Page and flush TLB
-//         set_user_page(next_pid, 1); // Set present bit in execute and 0 in halt
+//         set_user_prog_page(next_pid, 1); // Set present bit in execute and 0 in halt
         
 //         // Load executable into user page
 //         int val = read_data(file_dentry.inode, 0, (uint8_t*)PROG_IMG_ADDR, 100000);
 //         if(val == -1){
-//             set_user_page(next_pid, 0);
+//             set_user_prog_page(next_pid, 0);
 //             return -1;
 //         }
 

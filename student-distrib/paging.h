@@ -29,13 +29,16 @@ page_tab_desc_t user_video_table[1024] __attribute__((aligned (FOUR_KB)));
 extern void init_paging(void);
 
 // Helper function to set up user page
-extern void set_user_page(uint32_t pid, int32_t present_flag);
+extern void set_user_prog_page(uint32_t pid, int32_t present_flag);
 
 // Helper function to set up user video memory page
 extern void set_user_video_page(int32_t present_flag);
 
-// Helper function to restore a terminal's video memory
+// Helper function to save and copy video memory for visible terminal switching
 void change_terminal_video_page(int32_t from_terminal_id, int32_t to_terminal_id);
+
+// Helper function to remap where virtual video memory maps to physically
+void redirect_vidmem_page(int32_t terminal_id); 
 
 // Function to flush TLB
 extern void flush_tlb(void);
