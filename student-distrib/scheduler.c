@@ -48,12 +48,7 @@ void scheduler(){
 
     
     
-    asm volatile(       //Switch to next process's stack
-        "movl %0, %%esp;"
-        "movl %1, %%ebp;"
-        : 
-        :"r"(next_pcb->parent_esp), "r"(next_pcb->parent_ebp) // Inputs
-    );
+    
 
     // Restore paging 
     set_user_video_page(1);
@@ -62,5 +57,11 @@ void scheduler(){
     // Update TSS
     tss.esp0 = EIGHT_MB - (next_pcb->process_id * EIGHT_KB) - 4;
     tss.ss0 = KERNEL_DS;
-
+    
+    asm volatile(       //Switch to next process's stack
+        "movl %0, %%esp;"
+        "movl %1, %%ebp;"
+        : 
+        :"r"(next_pcb->parent_esp), "r"(next_pcb->parent_ebp) // Inputs
+    );
 }
