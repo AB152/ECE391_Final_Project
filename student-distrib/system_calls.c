@@ -269,17 +269,17 @@ int32_t execute(const uint8_t* command){
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
     
     // If we're executing the first base shells for the terminals, get their ESP/EBP from scheduler
-    if(next_pid <= 2){
-        next_pcb_ptr->parent_esp = terminals[curr_terminal].terminal_pcb->parent_esp;
-        next_pcb_ptr->parent_ebp = terminals[curr_terminal].terminal_pcb->parent_ebp;
-    }
-    else{
-        // Save state of current stack into PCB
+    // if(next_pid <= 2){
+    //     next_pcb_ptr->parent_esp = terminals[curr_terminal].terminal_pcb->parent_esp;
+    //     next_pcb_ptr->parent_ebp = terminals[curr_terminal].terminal_pcb->parent_ebp;
+    // }
+    // else{
+    //     // Save state of current stack into PCB
         asm volatile ("movl %%esp, %0;"
                       "movl %%ebp, %1;"
                     : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
         );   
-    }
+    // }
     
     next_pcb_ptr->parent_pcb = terminals[curr_terminal].terminal_pcb;
     terminals[curr_terminal].terminal_pcb=next_pcb_ptr; //update pcb pointer for current terminal

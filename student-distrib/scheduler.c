@@ -44,24 +44,24 @@ void scheduler(){
     // Round-robin increment
     curr_terminal = (curr_terminal + 1) % MAX_TERMINALS;
 
+    set_user_video_page(1);
+
     pcb_t * next_pcb = terminals[curr_terminal].terminal_pcb;
 
-    
-    
-    
-
     // Restore paging 
-    set_user_video_page(1);
     set_user_prog_page(next_pcb->process_id, 1);
 
     // Update TSS
     tss.esp0 = EIGHT_MB - (next_pcb->process_id * EIGHT_KB) - 4;
     tss.ss0 = KERNEL_DS;
-    
+
     asm volatile(       //Switch to next process's stack
         "movl %0, %%esp;"
         "movl %1, %%ebp;"
+        "sti;"
         : 
         :"r"(next_pcb->parent_esp), "r"(next_pcb->parent_ebp) // Inputs
+        :"esp", "ebp"
     );
+
 }
