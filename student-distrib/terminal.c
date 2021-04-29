@@ -19,7 +19,7 @@
 void init_terminal(){
     // Find next available terminal ID to assign
     int i, j; 
-    curr_terminal = -1;
+    curr_terminal = 0;
     visible_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
         terminals[i].terminal_pcb = NULL;   //will be implemented in scheduler

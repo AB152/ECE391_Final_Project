@@ -42,6 +42,11 @@ int32_t halt(uint8_t status){
 
     pcb_t *pcb_ptr =(pcb_t*)terminals[curr_terminal].terminal_pcb;  //initialize to current running terminal's pcb
     
+    // Check if we're at base shell and spawn new base shell if so
+    if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
+        execute((uint8_t*)"shell");
+    }
+
     //initalize pcb
     int i;
     for(i = 2; i < 8; i++) {
@@ -63,20 +68,17 @@ int32_t halt(uint8_t status){
     // Mark PID as free
     processes[pcb_ptr->process_id] = 0;
     terminals[curr_terminal].last_assigned_pid = pcb_ptr->parent_process_id;
-
-    // Check if we're at base shell and spawn new base shell if so
-    if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
-        execute((uint8_t*)"shell");
-    }
     
     // Update TSS to return to parent context
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
-    
+
     // Check to see if parent called vidmap and turn it back on if so
-    pcb_t *parent_pcb_ptr = (pcb_t*)(tss.esp0  & 0xFFFFE000);
+    pcb_t *parent_pcb_ptr = pcb_ptr->parent_pcb;
     if(parent_pcb_ptr->called_vidmap)
         set_user_video_page(1);
+
+    terminals[curr_terminal].terminal_pcb = parent_pcb_ptr;
 
     // Check for exceptions and return 256 if so
     int32_t real_status;
@@ -233,21 +235,13 @@ int32_t execute(const uint8_t* command){
         return -1;
     }
 
-    if(next_pid==0){    //first process of terminal 1
-        next_pcb_ptr->parent_process_id=0;
-        next_pcb_ptr->process_id=0;
-    }
-    else if(next_pid==1){    //first process of terminal 2
-        next_pcb_ptr->parent_process_id=1;
-        next_pcb_ptr->process_id=1;
-    }
-    else if(next_pid==2){    //first process of terminal 3
-        next_pcb_ptr->parent_process_id=2;
-        next_pcb_ptr->process_id=2;
+    if(next_pid <= 2){    // base shell of terminal: assign given pid as both parent and process to denote base shell 
+        next_pcb_ptr->parent_process_id = next_pid;
+        next_pcb_ptr->process_id = next_pid;
     }
     else{
-        next_pcb_ptr->parent_process_id=terminals[curr_terminal].last_assigned_pid;
-        next_pcb_ptr->process_id=next_pid;
+        next_pcb_ptr->parent_process_id = terminals[curr_terminal].last_assigned_pid;
+        next_pcb_ptr->process_id = next_pid;
     }
 
     // Mark PID as in use and set PCB
@@ -269,20 +263,20 @@ int32_t execute(const uint8_t* command){
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
     
     // If we're executing the first base shells for the terminals, get their ESP/EBP from scheduler
-    // if(next_pid <= 2){
-    //     next_pcb_ptr->parent_esp = terminals[curr_terminal].terminal_pcb->parent_esp;
-    //     next_pcb_ptr->parent_ebp = terminals[curr_terminal].terminal_pcb->parent_ebp;
-    // }
-    // else{
-    //     // Save state of current stack into PCB
+    if(next_pid <= 2){
+        next_pcb_ptr->parent_esp = terminals[curr_terminal].terminal_pcb->parent_esp;
+        next_pcb_ptr->parent_ebp = terminals[curr_terminal].terminal_pcb->parent_ebp;
+    }
+    else{
+        // Save state of current stack into PCB
         asm volatile ("movl %%esp, %0;"
                       "movl %%ebp, %1;"
                     : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
         );   
-    // }
+    }
     
     next_pcb_ptr->parent_pcb = terminals[curr_terminal].terminal_pcb;
-    terminals[curr_terminal].terminal_pcb=next_pcb_ptr; //update pcb pointer for current terminal
+    terminals[curr_terminal].terminal_pcb = next_pcb_ptr; //update pcb pointer for current terminal
     
     // Push items to stack and context switch using IRET
     asm volatile (

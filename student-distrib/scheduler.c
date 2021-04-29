@@ -19,31 +19,38 @@ int count=0;
 void scheduler(){   
     // Get the current active process's pid
     //int32_t curr_pid = terminals[curr_terminal].last_assigned_pid;
-    pcb_t curr_pcb;
+    pcb_t * curr_pcb = terminals[curr_terminal].terminal_pcb;
         
-    // if(curr_pid==-1){   //takes care of booting up all three terminals
-    if(count<3){
-        curr_terminal++;
+    // Boot up the three terminals
+    if(curr_pcb == NULL && count < 3){
+        pcb_t temp_pcb;
         asm volatile(       //initialize terminal esp and ebp before executing shell
             "movl %%esp, %0;"
             "movl %%ebp, %1;"
-            : "=r"(curr_pcb.parent_esp), "=r"(curr_pcb.parent_ebp) // Outputs
+            : "=r"(temp_pcb.parent_esp), "=r"(temp_pcb.parent_ebp) // Outputs
         );
         count++;
-        terminals[curr_terminal].terminal_pcb = &curr_pcb;
+        terminals[curr_terminal].terminal_pcb = &temp_pcb;
         terminals[curr_terminal].last_assigned_pid = curr_terminal;   //mark terminal as booted and initialize its pid
+        terminals[curr_terminal].terminal_pcb->parent_pcb = (pcb_t *)(EIGHT_MB - ((count + 1) * EIGHT_KB));
+        terminal_switcher(curr_terminal);
+        printf("Terminal %d booting...\n", count);
         execute((uint8_t *)"shell");
     }
 
     asm volatile(       //saving old process's stack to transfer over to new process's stack
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
-        : "=r"(terminals[curr_terminal].terminal_pcb->parent_esp), "=r"(terminals[curr_terminal].terminal_pcb->parent_ebp) // Outputs
+        : "=r"(curr_pcb->parent_esp), "=r"(curr_pcb->parent_ebp) // Outputs
     );
 
     // Round-robin increment
     curr_terminal = (curr_terminal + 1) % MAX_TERMINALS;
 
+    // If the next terminal hasn't been booted yet: abort
+    if(terminals[curr_terminal].terminal_pcb == NULL)
+        return;
+    
     set_user_video_page(1);
 
     pcb_t * next_pcb = terminals[curr_terminal].terminal_pcb;
@@ -58,10 +65,9 @@ void scheduler(){
     asm volatile(       //Switch to next process's stack
         "movl %0, %%esp;"
         "movl %1, %%ebp;"
-        "sti;"
         : 
         :"r"(next_pcb->parent_esp), "r"(next_pcb->parent_ebp) // Inputs
         :"esp", "ebp"
     );
-
+    
 }
