@@ -5,6 +5,7 @@
 #include "pit.h"
 #include "paging.h"
 #include "x86_desc.h"
+#include "rtc.h"
 
 
 int shell_count = 0;
@@ -19,6 +20,11 @@ int shell_count = 0;
 void scheduler(){   
     // Get the current active process's PCB
     pcb_t * curr_pcb = terminals[scheduled_terminal].terminal_pcb;
+
+    if(shell_count == 0){
+        init_RTC();
+        RTC_open(NULL);
+    }
         
     // Boot up the three terminals
     if(curr_pcb == NULL && shell_count < 3){
@@ -32,6 +38,10 @@ void scheduler(){
         terminals[scheduled_terminal].terminal_pcb = &temp_pcb;
         terminals[scheduled_terminal].last_assigned_pid = scheduled_terminal;   //mark terminal as booted and initialize its pid
         //terminals[scheduled_terminal].terminal_pcb->parent_pcb = (pcb_t *)(EIGHT_MB - ((count + 1) * EIGHT_KB));
+
+        terminals[scheduled_terminal].rtc_freq = 2; // Set RTC Frequency to 2
+        RTC_write(NULL, 2, NULL); // Set RTC Frequency to 2
+
         switch_visible_terminal(scheduled_terminal);    // Switch video page so the bootup text stays in that terminal
         printf("Terminal %d booting...\n", shell_count);
         execute((uint8_t *)"shell");
@@ -54,6 +64,10 @@ void scheduler(){
     set_user_video_page(1);
 
     pcb_t * next_pcb = terminals[scheduled_terminal].terminal_pcb;
+
+    curr_freq = terminals[scheduled_terminal].rtc_freq;
+    
+    RTC_write(NULL, curr_freq, NULL); // Set RTC Frequency to the terminals RTC Freq
 
     // Remap user program page 
     set_user_prog_page(next_pcb->process_id, 1);

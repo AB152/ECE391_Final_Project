@@ -6,6 +6,8 @@
 #include "asm_linkage.h"
 #include "x86_desc.h"
 #include "i8259.h"
+#include "terminal.h"
+
 
 /* List of usable RTC frequencies as bitmaps to Register A's lowest 4 bits
    Ordered as 2^(index + 1) Hz but we don't go above 1024 Hz*/
@@ -116,7 +118,7 @@ int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes) {
     // If LSB is set in the first place, it's invalid
     if(freq % 2)
         return -1;
-    
+
     // Ignore LSB
     freq >>= 1;
     
