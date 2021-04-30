@@ -18,7 +18,7 @@
  */
 void init_terminal(){
     // Find next available terminal ID to assign
-    int i, j; 
+    int i; 
     scheduled_terminal = 0;
     visible_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
@@ -78,7 +78,7 @@ int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes) {
 
     // Alias vars for readability (using scheduled_terminal as we might be in a background process)
     char * kb_buf = terminals[scheduled_terminal].kb_buf;
-    int32_t * kb_buf_i = &terminals[scheduled_terminal].kb_buf_i;
+    volatile int32_t * kb_buf_i = &terminals[scheduled_terminal].kb_buf_i;
     
     // Return value var as we clear the terminal's keyboard info at the end
     int32_t bytes_written;
@@ -122,7 +122,7 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
 
     // Print n_bytes worth of chars
     for(i = 0; i < n_bytes; i++) {
-        putc(((char *)(buf))[i], terminals[scheduled_terminal]);
+        putc(((char *)(buf))[i]);
     }
 
     return i;
@@ -143,10 +143,10 @@ void switch_visible_terminal(int32_t terminal_id) {
     // Save visible terminal to its video page and load the one to change to
     change_terminal_video_page(visible_terminal, terminal_id);
 
-    // Preserve coordinates for screen and cursor
+    // Save cursor
     terminals[visible_terminal].cursor_x = get_screen_x();
     terminals[visible_terminal].cursor_y = get_screen_y();
-    
+
     // Update keyboard buffer and screen coordinates
     update_cursor(terminals[terminal_id].cursor_x, terminals[terminal_id].cursor_y);
 

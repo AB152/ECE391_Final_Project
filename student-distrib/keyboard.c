@@ -62,7 +62,7 @@ void keyboard_handler() {
 
     // Define alias vars for readability (using visible_terminal as the keyboard types to visible terminal)
     char * kb_buf = terminals[visible_terminal].kb_buf;
-    int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
+    volatile int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
 
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
@@ -110,10 +110,10 @@ void keyboard_handler() {
 
     // Backspace pressed: delete prev char if buffer isn't empty, then return from interrupt
     if(key_pressed == '\b') {
-        if(kb_buf_i > 0) {
+        if(*kb_buf_i > 0) {
             (*kb_buf_i)--;
             kb_buf[*kb_buf_i] = 0;
-            putc('\b', terminals[visible_terminal]);
+            putc('\b');
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -124,7 +124,7 @@ void keyboard_handler() {
         kb_buf[*kb_buf_i] = key_pressed;
         (*kb_buf_i)++;
         terminals[visible_terminal].kb_enter_flag = 1;
-        putc('\n', terminals[visible_terminal]);
+        putc('\n');
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -173,7 +173,7 @@ void keyboard_handler() {
             if(*kb_buf_i < KEYBOARD_BUF_CHAR_MAX && *kb_buf_i < terminal_buf_n_bytes - 1) {
                 kb_buf[*kb_buf_i] = ' ';
                 (*kb_buf_i)++;
-                putc(' ', terminals[visible_terminal]);
+                putc(' ');
             }
             else 
                 break;
@@ -260,7 +260,7 @@ void keyboard_handler() {
     // Put key pressed in buffer and on screen and advance buffer index
     kb_buf[*kb_buf_i] = key_pressed;
     (*kb_buf_i)++;        
-    putc(key_pressed, terminals[visible_terminal]);
+    putc(key_pressed);
     
     // Send EOI to PIC
     send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard

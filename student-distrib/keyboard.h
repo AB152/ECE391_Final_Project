@@ -4,6 +4,11 @@
 
 // http://www.philipstorr.id.au/pcbook/book3/scancode.htm
 
+#ifndef _KEYBOARD_H
+#define _KEYBOARD_H
+
+#include "types.h"
+
 #define KEYBOARD_PORT           0x60
 #define KEYBOARD_IRQ            0x01
 #define LEFT_SHIFT_PRESSED      0x2A
@@ -56,3 +61,5 @@ void clear_keyboard_vars(int32_t terminal_id);
 
 // Handles Keyboard interrupts
 extern void keyboard_handler();
+
+#endif /* _KEYBOARD_H */

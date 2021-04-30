@@ -14,8 +14,7 @@
 #define PIT_CH0             0x40
 #define PIT_MODE_REG        0x43
 //Note: must be as responsive as possible, so we chose min frequency required
-//#define PIT_FREQ            11932       // 1193180/100Hz(10ms) for frequency
-#define PIT_FREQ            59659       // 1193180/20Hz(50ms) for DEBUGGING
+#define PIT_FREQ            11932       // 1193180/100Hz(10ms) for frequency
 #define PIT_MODE_2          0x34
 
 // Initialize the RTC and turn on IRQ8
