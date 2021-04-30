@@ -15,13 +15,13 @@
  *    NOTES: 
  */
 void init_PIT(){
-    cli();
+    //cli();
     outb(PIT_MODE_2, PIT_MODE_REG);  // Select PIT channel 0, lobyte/hibyte access, rate gen. mode
     outb(PIT_FREQ & 0xFF, PIT_CH0);       // Set low byte of PIT reload value
     outb((PIT_FREQ & 0xFF00)>>8, PIT_CH0);        // Set high byte of PIT reload value
     SET_IDT_ENTRY(idt[0x20], &PIT_processor);   // Set entry on IDT
     enable_irq(PIT_IRQ);    // Enable IRQ on PIC
-    sti();
+    //sti();
 }
 
 /*

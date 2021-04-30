@@ -41,11 +41,6 @@ int32_t bad_call(){
 int32_t halt(uint8_t status){
 
     pcb_t *pcb_ptr =(pcb_t*)terminals[curr_terminal].terminal_pcb;  //initialize to current running terminal's pcb
-    
-    // Check if we're at base shell and spawn new base shell if so
-    if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
-        execute((uint8_t*)"shell");
-    }
 
     //initalize pcb
     int i;
@@ -55,20 +50,25 @@ int32_t halt(uint8_t status){
             pcb_ptr->fda[i].fops_table_ptr=bad_table;
         }    
     }
-    
-    // restore paging
-    set_user_prog_page(pcb_ptr -> parent_process_id, 1);
-    
-    // Close vidmap page if the halting process called it
-    if(pcb_ptr->called_vidmap) {
-        set_user_video_page(0);
-        pcb_ptr->called_vidmap = 0;
-    }
 
     // Mark PID as free
     processes[pcb_ptr->process_id] = 0;
     terminals[curr_terminal].last_assigned_pid = pcb_ptr->parent_process_id;
     
+    // Check if we're at base shell and spawn new base shell if so
+    if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
+        execute((uint8_t*)"shell");
+    }
+
+    // restore paging
+    set_user_prog_page(pcb_ptr -> parent_process_id, 1);
+    
+    /* Close vidmap page if the halting process called it (scheduling will fuck this up)
+    if(pcb_ptr->called_vidmap) {
+        set_user_video_page(0);
+        pcb_ptr->called_vidmap = 0;
+    } */
+
     // Update TSS to return to parent context
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
@@ -78,6 +78,7 @@ int32_t halt(uint8_t status){
     if(parent_pcb_ptr->called_vidmap)
         set_user_video_page(1);
 
+    // Terminal's PCB var should track parent process
     terminals[curr_terminal].terminal_pcb = parent_pcb_ptr;
 
     // Check for exceptions and return 256 if so
@@ -89,7 +90,7 @@ int32_t halt(uint8_t status){
     else
         real_status = status;
 
-    // swap stacks
+    // Jump back to execute so we can return
     asm volatile(
         "movl %0, %%esp;"
         "movl %1, %%ebp;"
@@ -100,7 +101,7 @@ int32_t halt(uint8_t status){
         : "r"(pcb_ptr->parent_esp), "r"(pcb_ptr->parent_ebp), "r"(real_status) // Inputs
         : "eax" // Clobbers
     );
-    return -1;      //temp return val
+    return -1;      // Should never reach here
 }
 
 /*
@@ -262,21 +263,25 @@ int32_t execute(const uint8_t* command){
     tss.esp0 = EIGHT_MB - (next_pid * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack
     tss.ss0 = KERNEL_DS;    //setting SS0 to kernel data segment
     
-    // If we're executing the first base shells for the terminals, get their ESP/EBP from scheduler
+    // If we're executing the first base shells for the terminals, the scheduler already got their ESP/EBP
     if(next_pid <= 2){
-        next_pcb_ptr->parent_esp = terminals[curr_terminal].terminal_pcb->parent_esp;
-        next_pcb_ptr->parent_ebp = terminals[curr_terminal].terminal_pcb->parent_ebp;
+        next_pcb_ptr->curr_esp = terminals[curr_terminal].terminal_pcb->curr_esp;
+        next_pcb_ptr->curr_ebp = terminals[curr_terminal].terminal_pcb->curr_ebp;
     }
+    // Otherwise, the scheduler will put the exec's ESP/EBP into the PCB later
     else{
-        // Save state of current stack into PCB
-        asm volatile ("movl %%esp, %0;"
-                      "movl %%ebp, %1;"
-                    : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
-        );   
+        next_pcb_ptr->curr_esp = NULL;
+        next_pcb_ptr->curr_ebp = NULL;
     }
     
-    next_pcb_ptr->parent_pcb = terminals[curr_terminal].terminal_pcb;
-    terminals[curr_terminal].terminal_pcb = next_pcb_ptr; //update pcb pointer for current terminal
+    // Save state of current/parent stack into PCB
+    asm volatile ("movl %%esp, %0;"
+                  "movl %%ebp, %1;"
+                : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
+    );
+
+    next_pcb_ptr->parent_pcb = terminals[curr_terminal].terminal_pcb; // Save existing PCB as parent
+    terminals[curr_terminal].terminal_pcb = next_pcb_ptr; // Update pcb pointer for current terminal
     
     // Push items to stack and context switch using IRET
     asm volatile (
@@ -285,7 +290,7 @@ int32_t execute(const uint8_t* command){
         
         "pushl %1;"                 //push USER_DS, 0x2B
         
-        "pushl $0x083ffffc;"        // Set ESP to point to the user page
+        "pushl $0x083ffffc;"        // Set ESP to point to the user page (132MB - 4B)
         
         "pushfl;"                   //push flags
         "popl %%eax;"

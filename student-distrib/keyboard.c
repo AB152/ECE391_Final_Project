@@ -10,7 +10,6 @@
 #include "i8259.h"
 
 /*
-
  * init_keyboard
  *    DESCRIPTION: Initializes the keyboard by setting the IDT entry, PIC IRQ, and clearing buffer
  *    INPUTS/OUTPUTS: none  
@@ -18,7 +17,7 @@
 void init_keyboard(){
     clear_keyboard_buf();
     enable_irq(KEYBOARD_IRQ);
-    enter_flag = 0;
+    //enter_flag = 0;
     SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
 }
 
@@ -45,18 +44,6 @@ void keyboard_handler() {
     // Scan code + 0x80 is that key but released/"de-pressed"
     // ASCII + 0x20 is the lower case of that letter
     
-    // int scan_code_to_ascii[] = {
-    // 0, 27, 49, 50, 51, 52, 53, 54, 55, 56,
-    // 57, 48, 45, 61, 8, 9, 113, 119, 101, 114,
-    // 116, 121, 117, 105, 111, 112, 91, 93, 10, 0,
-    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 59,
-    // 39, 96, 0, 92, 122, 120, 99, 118, 98, 110,
-    // 109, 44, 46, 47, 0, 42, 0, 32, 0, 0
-    // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    // 0, 55, 56, 57, 45, 52, 53, 54, 43, 49,
-    // 50, 51, 48, 46, 0, 0, 0, 0, 0
-    // };
-
     // Index is the scan code, the value at an index is that scan code key's ASCII
     int scan_code_to_ascii[] = {
     0, 0x1B, '1', '2', '3', '4', '5', '6', '7', '8',
@@ -70,7 +57,7 @@ void keyboard_handler() {
     '2', '3', '0', '.', 0, 0, 0, 0, 0
     };
 
-    int temp_i;   // Temp var used for any misc loop index
+    int temp_i;   // Temp var used for tab loop index
 
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
@@ -131,7 +118,7 @@ void keyboard_handler() {
     if(key_pressed == '\n') {
         keyboard_buf[keyboard_buf_i] = key_pressed;
         keyboard_buf_i++;
-        enter_flag = 1;
+        terminals[visible_terminal].term_kb_enter_flag = 1;
         putc('\n');
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -145,39 +132,36 @@ void keyboard_handler() {
         return;
     }
 
-    // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press
-    if(keyboard_buf_i == KEYBOARD_BUF_CHAR_MAX || keyboard_buf_i == terminal_buf_n_bytes - 1) {
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-
     // Case for alt flag for terminal switching
     if(alt_flag) {
         // Alt + F1
         if(scan_code==TERMINAL_ONE){    
-            terminal_switcher(0);       //pass in terminal id to switch to
+            switch_visible_terminal(0);       //pass in terminal id to switch to
             send_eoi(KEYBOARD_IRQ);
             return;
         }
 
         // Alt + F2
         if(scan_code==TERMINAL_TWO){
-            terminal_switcher(1);
+            switch_visible_terminal(1);
             send_eoi(KEYBOARD_IRQ);
             return;
         }
 
         // Alt + F3
         if(scan_code == TERMINAL_THREE) {
-            terminal_switcher(2);
+            switch_visible_terminal(2);
             send_eoi(KEYBOARD_IRQ);
             return;
         }
     }
 
-    /* IMPORTANT */
-    // Ask TA if tab with less than 8 spaces left in buffer continues tab on next line
-    // Also ask TA if we need to process multiple letters pressed at same time
+    // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press
+    if(keyboard_buf_i == KEYBOARD_BUF_CHAR_MAX || keyboard_buf_i == terminal_buf_n_bytes - 1) {
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
     if(key_pressed == '\t') {
         // Tab = 8 spaces, but clip if overflow
         for(temp_i = 0; temp_i < 8; temp_i++) {

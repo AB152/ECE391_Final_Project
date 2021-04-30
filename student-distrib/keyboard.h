@@ -31,7 +31,7 @@ int terminal_buf_n_bytes;
 int keyboard_buf_i;
 
 // Tracks if enter was pressed so terminal_read can continue
-volatile int enter_flag;
+//volatile int enter_flag;
 
 // Keyboard flags
 int left_shift_flag;

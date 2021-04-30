@@ -22,7 +22,7 @@ unsigned char freq_list[10] = {0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08, 0
  */ 
 void init_RTC() {
 
-    cli();                              // important that no interrupts happen (perform a CLI)
+    //cli();                              // important that no interrupts happen (perform a CLI)
     outb(DISABLE_NMI_B, RTC_PORT);		// select register B, and disable NMI
     uint32_t prev = inb(CMOS_PORT);	        // read the current value of register B
     outb(DISABLE_NMI_B, RTC_PORT);		// set the index again (a read will reset the index to register D)
@@ -30,7 +30,7 @@ void init_RTC() {
     enable_irq(RTC_IRQ);
     SET_IDT_ENTRY(idt[0x28], &RTC_processor);             //index 28 of IDT reserved for RTC
     RTC_int = 0;                // Clear RTC flag
-    sti();                      // (perform an STI) and reenable NMI if you wish? 
+    //sti();                      // (perform an STI) and reenable NMI if you wish? 
 
 }
 

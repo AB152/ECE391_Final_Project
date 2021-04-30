@@ -17,6 +17,8 @@ typedef struct{
     int32_t cursor_y;
     int32_t last_assigned_pid;    //keeps track of last assigned pid of the terminal
     char term_kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
+    volatile int32_t term_kb_buf_i;
+    volatile char term_kb_enter_flag;
 }terminal_t;
 
 
@@ -25,10 +27,10 @@ int32_t curr_terminal;  // keeps track of which terminal the scheduler is runnin
 int32_t visible_terminal; // tracks the terminal_id of the currently visible terminal
 
 // Terminal's copy of keyboard_buf before it gets cleared
-char terminal_buf[KEYBOARD_BUF_SIZE];
+//char terminal_buf[KEYBOARD_BUF_SIZE];
 
 // Terminal's copy of keyboard_buf_i before it gets cleared
-int32_t terminal_buf_i;
+//int32_t terminal_buf_i;
 
 extern void init_terminal();
 
@@ -45,6 +47,6 @@ int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes);
 int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes);
 
 // Switches to the desired terminal
-void terminal_switcher(int32_t terminal_id);
+void switch_visible_terminal(int32_t terminal_id);
 
 #endif /* _TERMINAL_H */

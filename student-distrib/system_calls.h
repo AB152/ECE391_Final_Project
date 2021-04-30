@@ -31,6 +31,8 @@ typedef struct pcb {
     uint32_t parent_process_id;
     uint32_t parent_esp;
     uint32_t parent_ebp;
+    uint32_t curr_esp;
+    uint32_t curr_ebp;
     uint8_t called_vidmap;
     int8_t arg[MAX_ARGS];             // holds the arguments passed by the shell cmd 
     struct pcb * parent_pcb;

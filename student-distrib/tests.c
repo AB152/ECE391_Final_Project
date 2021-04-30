@@ -251,13 +251,13 @@ int test_terminal_keyboard(){
 	char buf[test_term_buf_size];				// Buffer that keyboard_buf should be copied to 
 	terminal_open(NULL);
 	terminal_read(fd, buf, test_term_buf_size);
-	terminal_write(fd, buf, terminal_buf_i);
+	terminal_write(fd, buf, terminals[curr_terminal].term_kb_buf_i);
 	// If the buffers up until '\n' are not the same, the copy failed
-	if(strncmp(buf, terminal_buf, terminal_buf_i))
+	if(strncmp(buf, terminals[curr_terminal].term_kb_buf, terminals[curr_terminal].term_kb_buf_i))
 		return FAIL;
 	terminal_read(fd, buf, test_term_buf_size);
-	terminal_write(fd, buf, terminal_buf_i);
-	if(strncmp(buf, terminal_buf, terminal_buf_i))
+	terminal_write(fd, buf, terminals[curr_terminal].term_kb_buf_i);
+	if(strncmp(buf, terminals[curr_terminal].term_kb_buf, terminals[curr_terminal].term_kb_buf_i))
 		return FAIL;
 	return PASS;
 }
