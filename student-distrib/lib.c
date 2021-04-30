@@ -16,15 +16,18 @@ static char* video_mem = (char *)VIDEO;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
- * Function: Clears video memory and resets cursor to (0,0) */
+ * Function: Clears video memory and resets cursor to (0,0) 
+ * NOTES: Only visible terminal will call this (CTRL + L and kernel entry only) */
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    screen_x = 0;
-    screen_y = 0;
+    // Reset screen coordinates
+    update_cursor(0, 0);    // update_cursor also sets screen_x and screen_y
+    terminals[visible_terminal].cursor_x = 0;
+    terminals[visible_terminal].cursor_y = 0;
 }
 
 /* Standard printf().
@@ -242,11 +245,11 @@ void scroll(void){
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c, int keyboard_flag) {
-    
+
     // Ignore NULL bytes
     if(c == '\0')
         return;
-    
+
     // If the scheduled terminal isn't the visible terminal, redirect VIDMEM to point to its backgroud buffer
     if(visible_terminal != scheduled_terminal) {
         if(!keyboard_flag){
@@ -272,7 +275,7 @@ void putc(uint8_t c, int keyboard_flag) {
         //do nothing if we're at (0,0)
         if (screen_x + screen_y == 0)
             return;
-        
+
         // Set coordinates to previous index
         screen_x--;
         
@@ -306,10 +309,10 @@ void putc(uint8_t c, int keyboard_flag) {
     if(visible_terminal != scheduled_terminal) {
         if(!keyboard_flag){
             redirect_vidmem_page(visible_terminal);            // redirect VIDMEM to point back to itself
-            terminals[visible_terminal].cursor_x = screen_x; // save cursor to scheduled terminal
-            terminals[visible_terminal].cursor_y = screen_y;
-            screen_x = terminals[scheduled_terminal].cursor_x;  // restore visible cursor coordinates
-            screen_y = terminals[scheduled_terminal].cursor_y;
+            terminals[scheduled_terminal].cursor_x = screen_x; // save cursor to scheduled terminal
+            terminals[scheduled_terminal].cursor_y = screen_y;
+            screen_x = terminals[visible_terminal].cursor_x;  // restore visible cursor coordinates
+            screen_y = terminals[visible_terminal].cursor_y;
             return;     // Return so that we don't spaz out the VGA blinking cursor
         }
     }

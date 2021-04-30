@@ -33,6 +33,22 @@ void init_terminal(){
 }
 
 /*
+ * clear_keyboard_buf
+ *    DESCRIPTION: Zeros keyboard buffer, resets enter flag and buffer index
+ *    INPUTS: terminal_id -- the terminal whose keyboard vars are to be reset   
+ */
+void clear_keyboard_vars(int32_t terminal_id) {
+    if(terminal_id < 0 || terminal_id >= MAX_TERMINALS)
+        return;
+    int i;      // Loop index
+    terminals[terminal_id].kb_buf_i = 0;
+    terminals[terminal_id].kb_enter_flag = 0;
+    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
+        terminals[terminal_id].kb_buf[i] = 0;
+    }
+}
+
+/*
  * terminal_open
  *    DESCRIPTION: Open the terminal (stdin)
  *    INPUTS: none

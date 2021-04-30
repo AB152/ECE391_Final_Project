@@ -29,6 +29,9 @@ void entry(unsigned long magic, unsigned long addr) {
 
     multiboot_info_t *mbi;
 
+    // Initialize multi-terminal
+    init_terminal();
+    
     /* Clear the screen. */
     clear();
 
@@ -160,8 +163,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Enable paging */
     init_paging();
 
-    // Initialize multi-terminal
-    init_terminal();
+    // MULTI-TERMINAL INITIALIZATION MOVED TO TOP OF FUNCTION AS PRINTING IS TERMINAL-BASED
     
     // Initialize RTC interrupts
     init_RTC();

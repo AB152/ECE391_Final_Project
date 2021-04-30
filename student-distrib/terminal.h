@@ -40,6 +40,9 @@ int32_t visible_terminal; // tracks the terminal_id of the currently visible ter
 // Initializes multi-terminal
 extern void init_terminal();
 
+// Zeros keyboard buffer, resets enter flag and buffer index
+void clear_keyboard_vars(int32_t terminal_id);
+
 // Open syscall for terminal
 int32_t terminal_open(int32_t fd);
 

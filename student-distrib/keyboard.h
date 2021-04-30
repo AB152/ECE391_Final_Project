@@ -56,9 +56,6 @@ int alt_flag;
 // Initialize the keyboard by enabling the PIC IRQ
 void init_keyboard();
 
-// Zeros keyboard buffer, resets enter flag and buffer index
-void clear_keyboard_vars(int32_t terminal_id);
-
 // Handles Keyboard interrupts
 extern void keyboard_handler();
 
