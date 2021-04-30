@@ -225,7 +225,7 @@ void change_terminal_video_page(int32_t from_terminal_id, int32_t to_terminal_id
  *    RETURNS: none 
  *    NOTES: This would only be used for a terminal that is currently scheduled to run but isn't
  *           the currently visible terminal. After this is called, all writes to vidmem will be redirected
- *           to the video page corresponding to terminal_id.
+ *           to the background buffer page corresponding to terminal_id.
  */ 
 void redirect_vidmem_page(int32_t terminal_id) {
 

@@ -17,7 +17,7 @@ static char* video_mem = (char *)VIDEO;
  * Inputs: void
  * Return Value: none
  * Function: Clears video memory and resets cursor to (0,0) 
- * NOTES: Only visible terminal will call this (CTRL + L and kernel entry only) */
+ * NOTES: Only visible terminal will call this (CTRL + L and kernel bootup only) */
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
@@ -308,7 +308,7 @@ void putc(uint8_t c, int keyboard_flag) {
     // Update background terminal's cursor and restore the visible terminal's cursor and return
     if(visible_terminal != scheduled_terminal) {
         if(!keyboard_flag){
-            redirect_vidmem_page(visible_terminal);            // redirect VIDMEM to point back to itself
+            redirect_vidmem_page(visible_terminal);            // redirect virt_addr 0xB8000 to point back to itself
             terminals[scheduled_terminal].cursor_x = screen_x; // save cursor to scheduled terminal
             terminals[scheduled_terminal].cursor_y = screen_y;
             screen_x = terminals[visible_terminal].cursor_x;  // restore visible cursor coordinates
@@ -318,6 +318,8 @@ void putc(uint8_t c, int keyboard_flag) {
     }
 
     // Update cursor position
+    terminals[visible_terminal].cursor_x = screen_x;
+    terminals[visible_terminal].cursor_y = screen_y;
     update_cursor(screen_x, screen_y);
 }
 
