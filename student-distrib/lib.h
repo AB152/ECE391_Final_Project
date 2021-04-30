@@ -14,7 +14,7 @@ void update_cursor(int x, int y);       // Updates VGA text-mode cursor position
 int get_screen_x();                     // Returns X-coordinate of screen
 int get_screen_y();                     // Returns Y-coordinate of screen 
 void scroll(void);                      // Scroll each line on screen up by one line
-void putc(uint8_t c);
+void putc(uint8_t c, int keyboard_flag);
 int32_t puts(int8_t *s);
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);

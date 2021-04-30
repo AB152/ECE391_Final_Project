@@ -179,7 +179,7 @@ void set_user_video_page(int32_t present_flag) {
     if(visible_terminal == scheduled_terminal)
         user_video_table[0].page_base_address = VIDMEM_PAGE_BASE;  // Set page to point to physical video memory
     else
-        user_video_table[0].page_base_address = VIDMEM_PAGE_BASE + scheduled_terminal + 1; // Set page to point to BGround 
+        user_video_table[0].page_base_address = VIDMEM_PAGE_BASE + scheduled_terminal + 1; // Set page to background 
     
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.present = present_flag;        //present b/c page is being initialized
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.read_write = 1;     //all pages are marked read/write for mp3
@@ -209,10 +209,10 @@ void change_terminal_video_page(int32_t from_terminal_id, int32_t to_terminal_id
     if(from_terminal_id < 0 || from_terminal_id > 2 || to_terminal_id < 0 || to_terminal_id > 2)
         return;
 
-    // Save current terminal's screen to its video page
+    // Save current terminal's screen to its background buffer page
     memcpy((void *)(VIDMEM + (from_terminal_id + 1) * FOUR_KB), (void *)VIDMEM, FOUR_KB);
 
-    // Restore new terminal's screen to video memory
+    // Restore new terminal's screen from background buffer to video memory
     memcpy((void *)VIDMEM, (void *)(VIDMEM + (to_terminal_id + 1) * FOUR_KB), FOUR_KB);
     flush_tlb();
 }
@@ -233,11 +233,11 @@ void redirect_vidmem_page(int32_t terminal_id) {
     if(terminal_id < 0 || terminal_id > 2)
         return;
 
-    // Redirect kernel vidmem page (if it's the currently visible terminal, automatically reset it)
-    if(scheduled_terminal == visible_terminal)
+    // Redirect kernel vidmem page (if it's the currently visible terminal, reset it back to VGA)
+    if(terminal_id == visible_terminal)
         page_table_one[VIDMEM_PAGE_BASE].page_base_address = VIDMEM_PAGE_BASE;
     
-    else
+    else    //redirects to background buffer so it wont display on screen
         page_table_one[VIDMEM_PAGE_BASE].page_base_address = VIDMEM_PAGE_BASE + terminal_id + 1;
 
     flush_tlb();

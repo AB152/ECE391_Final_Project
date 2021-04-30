@@ -37,7 +37,8 @@ void scheduler(){
         execute((uint8_t *)"shell");
     }
 
-    // Save old process's stack (also properly sets up first base shell's ESP/EBP)
+    // Save old process's stack
+    // This properly sets up first base shell's ESP/EBP by forcing it into this context
     asm volatile(       
         "movl %%esp, %0;"
         "movl %%ebp, %1;"

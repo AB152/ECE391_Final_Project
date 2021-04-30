@@ -122,7 +122,7 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
 
     // Print n_bytes worth of chars
     for(i = 0; i < n_bytes; i++) {
-        putc(((char *)(buf))[i]);
+        putc(((char *)(buf))[i], 0);
     }
 
     return i;

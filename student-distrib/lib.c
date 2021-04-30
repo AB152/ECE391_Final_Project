@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "paging.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -64,7 +65,7 @@ format_char_switch:
                     switch (*buf) {
                         /* Print a literal '%' character */
                         case '%':
-                            putc('%');
+                            putc('%', 0);
                             break;
 
                         /* Use alternate formatting */
@@ -126,7 +127,7 @@ format_char_switch:
 
                         /* Print a single character */
                         case 'c':
-                            putc((uint8_t) *((int32_t *)esp));
+                            putc((uint8_t) *((int32_t *)esp), 0);
                             esp++;
                             break;
 
@@ -144,7 +145,7 @@ format_char_switch:
                 break;
 
             default:
-                putc(*buf);
+                putc(*buf, 0);
                 break;
         }
         buf++;
@@ -159,7 +160,7 @@ format_char_switch:
 int32_t puts(int8_t* s) {
     register int32_t index = 0;
     while (s[index] != '\0') {
-        putc(s[index]);
+        putc(s[index], 0);
         index++;
     }
     return index;
@@ -237,14 +238,25 @@ void scroll(void){
 
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
+ *         int keyboard_flag = denotes whether or not this was called from keyboard
  * Return Value: void
  *  Function: Output a character to the console */
-void putc(uint8_t c) {
+void putc(uint8_t c, int keyboard_flag) {
     
     // Ignore NULL bytes
     if(c == '\0')
         return;
     
+    // If the scheduled terminal isn't the visible terminal, redirect VIDMEM to point to its backgroud buffer
+    if(visible_terminal != scheduled_terminal) {
+        if(!keyboard_flag){
+            // Note that we won't update the VGA blinking cursor here as it will spaz out the visible terminal
+            redirect_vidmem_page(scheduled_terminal);
+            screen_x = terminals[scheduled_terminal].cursor_x;  //update cursor coordinates
+            screen_y = terminals[scheduled_terminal].cursor_y;
+        }
+    }
+
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x = 0;
@@ -289,7 +301,20 @@ void putc(uint8_t c) {
             screen_y = NUM_ROWS - 1;
         } 
     }
-    // Update cursor position (might be more efficient to only do this after a whole buffer is printed)
+
+    // Update background terminal's cursor and restore the visible terminal's cursor and return
+    if(visible_terminal != scheduled_terminal) {
+        if(!keyboard_flag){
+            redirect_vidmem_page(visible_terminal);            // redirect VIDMEM to point back to itself
+            terminals[visible_terminal].cursor_x = screen_x; // save cursor to scheduled terminal
+            terminals[visible_terminal].cursor_y = screen_y;
+            screen_x = terminals[scheduled_terminal].cursor_x;  // restore visible cursor coordinates
+            screen_y = terminals[scheduled_terminal].cursor_y;
+            return;     // Return so that we don't spaz out the VGA blinking cursor
+        }
+    }
+
+    // Update cursor position
     update_cursor(screen_x, screen_y);
 }
 
@@ -587,5 +612,5 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     } */
-    putc('1');      // Changed so that a 1 is put to the screen every interrupt
+    putc('1',0);      // Changed so that a 1 is put to the screen every interrupt
 }
