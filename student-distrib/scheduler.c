@@ -7,7 +7,7 @@
 #include "x86_desc.h"
 
 
-int count=0;
+int shell_count = 0;
 
 /*
  * scheduler
@@ -18,22 +18,22 @@ int count=0;
  */
 void scheduler(){   
     // Get the current active process's PCB
-    pcb_t * curr_pcb = terminals[curr_terminal].terminal_pcb;
+    pcb_t * curr_pcb = terminals[scheduled_terminal].terminal_pcb;
         
     // Boot up the three terminals
-    if(curr_pcb == NULL && count < 3){
+    if(curr_pcb == NULL && shell_count < 3){
         pcb_t temp_pcb;
         asm volatile(       // Retrieve initial ESP and EBP before booting base shells
             "movl %%esp, %0;"
             "movl %%ebp, %1;"
             : "=r"(temp_pcb.curr_esp), "=r"(temp_pcb.curr_ebp) // Outputs
         );
-        count++;
-        terminals[curr_terminal].terminal_pcb = &temp_pcb;
-        terminals[curr_terminal].last_assigned_pid = curr_terminal;   //mark terminal as booted and initialize its pid
-        //terminals[curr_terminal].terminal_pcb->parent_pcb = (pcb_t *)(EIGHT_MB - ((count + 1) * EIGHT_KB));
-        switch_visible_terminal(curr_terminal);
-        printf("Terminal %d booting...\n", count);
+        shell_count++;
+        terminals[scheduled_terminal].terminal_pcb = &temp_pcb;
+        terminals[scheduled_terminal].last_assigned_pid = scheduled_terminal;   //mark terminal as booted and initialize its pid
+        //terminals[scheduled_terminal].terminal_pcb->parent_pcb = (pcb_t *)(EIGHT_MB - ((count + 1) * EIGHT_KB));
+        switch_visible_terminal(scheduled_terminal);    // Switch video page so the bootup text stays in that terminal
+        printf("Terminal %d booting...\n", shell_count);
         execute((uint8_t *)"shell");
     }
 
@@ -45,15 +45,15 @@ void scheduler(){
     );
 
     // Round-robin increment
-    curr_terminal = (curr_terminal + 1) % MAX_TERMINALS;
+    scheduled_terminal = (scheduled_terminal + 1) % MAX_TERMINALS;
 
     // If the next terminal hasn't been booted yet, boot it on the next PIT interrupt
-    if(terminals[curr_terminal].terminal_pcb == NULL)
+    if(terminals[scheduled_terminal].terminal_pcb == NULL)
         return;
     
     set_user_video_page(1);
 
-    pcb_t * next_pcb = terminals[curr_terminal].terminal_pcb;
+    pcb_t * next_pcb = terminals[scheduled_terminal].terminal_pcb;
 
     // Remap user program page 
     set_user_prog_page(next_pcb->process_id, 1);
@@ -62,6 +62,7 @@ void scheduler(){
     tss.esp0 = EIGHT_MB - (next_pcb->process_id * EIGHT_KB) - 4;
     tss.ss0 = KERNEL_DS;
 
+    // IMPORTANT: Why tf do we need an STI here? Should we ask a TA?
     asm volatile(       //Switch to next process's stack
         "movl %0, %%esp;"
         "movl %1, %%ebp;"

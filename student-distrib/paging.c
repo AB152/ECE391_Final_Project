@@ -176,10 +176,10 @@ void set_user_video_page(int32_t present_flag) {
     user_video_table[0].present = present_flag;            // Mark table entry as present
     
     // Check if vidmap should be writing to screen or to background 
-    if(visible_terminal == curr_terminal)
+    if(visible_terminal == scheduled_terminal)
         user_video_table[0].page_base_address = VIDMEM_PAGE_BASE;  // Set page to point to physical video memory
     else
-        user_video_table[0].page_base_address = VIDMEM_PAGE_BASE + curr_terminal + 1; // Set page to point to BGround 
+        user_video_table[0].page_base_address = VIDMEM_PAGE_BASE + scheduled_terminal + 1; // Set page to point to BGround 
     
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.present = present_flag;        //present b/c page is being initialized
     page_directory[USER_VID_PAGE_DIR_I].pd_kb.read_write = 1;     //all pages are marked read/write for mp3
@@ -234,7 +234,7 @@ void redirect_vidmem_page(int32_t terminal_id) {
         return;
 
     // Redirect kernel vidmem page (if it's the currently visible terminal, automatically reset it)
-    if(curr_terminal == visible_terminal)
+    if(scheduled_terminal == visible_terminal)
         page_table_one[VIDMEM_PAGE_BASE].page_base_address = VIDMEM_PAGE_BASE;
     
     else

@@ -11,26 +11,27 @@
 
 /*
  * init_keyboard
- *    DESCRIPTION: Initializes the keyboard by setting the IDT entry, PIC IRQ, and clearing buffer
+ *    DESCRIPTION: Initializes the keyboard by setting the IDT entry and PIC IRQ
  *    INPUTS/OUTPUTS: none  
  */
 void init_keyboard(){
-    clear_keyboard_buf();
     enable_irq(KEYBOARD_IRQ);
-    //enter_flag = 0;
     SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
 }
 
 /*
  * clear_keyboard_buf
- *    DESCRIPTION: Clears keyboard buffer
- *    INPUTS/OUTPUTS: none  
+ *    DESCRIPTION: Zeros keyboard buffer, resets enter flag and buffer index
+ *    INPUTS: terminal_id -- the terminal whose keyboard vars are to be reset   
  */
-void clear_keyboard_buf() {
+void clear_keyboard_vars(int32_t terminal_id) {
+    if(terminal_id < 0 || terminal_id >= MAX_TERMINALS)
+        return;
     int i;      // Loop index
-    keyboard_buf_i = 0;
+    terminals[terminal_id].kb_buf_i = 0;
+    terminals[terminal_id].kb_enter_flag = 0;
     for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        keyboard_buf[i] = 0;
+        terminals[terminal_id].kb_buf[i] = 0;
     }
 }
 
@@ -58,6 +59,10 @@ void keyboard_handler() {
     };
 
     int temp_i;   // Temp var used for tab loop index
+
+    // Define alias vars for readability (using visible_terminal as the keyboard types to visible terminal)
+    char * kb_buf = terminals[visible_terminal].kb_buf;
+    int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
 
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
@@ -103,23 +108,23 @@ void keyboard_handler() {
     // Convert scan code to ASCII equivalent
     char key_pressed = scan_code_to_ascii[scan_code];
 
-    // Backspace pressed: delete last char if buffer isn't empty, then return from interrupt
+    // Backspace pressed: delete prev char if buffer isn't empty, then return from interrupt
     if(key_pressed == '\b') {
-        if(keyboard_buf_i > 0) {
-            keyboard_buf_i--;
-            keyboard_buf[keyboard_buf_i] = 0;
-            putc('\b');
+        if(kb_buf_i > 0) {
+            (*kb_buf_i)--;
+            kb_buf[*kb_buf_i] = 0;
+            putc('\b', terminals[visible_terminal]);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
     }
     
-    // If enter pressed, print newline, set enter_flag for terminal, mark buf for clear, and return from interrupt
+    // If enter pressed, print newline, set enter_flag, and return from interrupt (terminal_read will clear buf)
     if(key_pressed == '\n') {
-        keyboard_buf[keyboard_buf_i] = key_pressed;
-        keyboard_buf_i++;
-        terminals[visible_terminal].term_kb_enter_flag = 1;
-        putc('\n');
+        kb_buf[*kb_buf_i] = key_pressed;
+        (*kb_buf_i)++;
+        terminals[visible_terminal].kb_enter_flag = 1;
+        putc('\n', terminals[visible_terminal]);
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -127,7 +132,7 @@ void keyboard_handler() {
     // Ctrl + l and Ctrl + L clears screen and prints keyboard buffer again
     if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
         clear();
-        terminal_write(NULL, keyboard_buf, keyboard_buf_i);
+        terminal_write(NULL, kb_buf, *kb_buf_i);
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -157,18 +162,18 @@ void keyboard_handler() {
     }
 
     // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press
-    if(keyboard_buf_i == KEYBOARD_BUF_CHAR_MAX || keyboard_buf_i == terminal_buf_n_bytes - 1) {
+    if(*kb_buf_i == KEYBOARD_BUF_CHAR_MAX || *kb_buf_i == terminal_buf_n_bytes - 1) {
         send_eoi(KEYBOARD_IRQ);
         return;
     }
 
     if(key_pressed == '\t') {
-        // Tab = 8 spaces, but clip if overflow
+        // Tab = 8 spaces, clipping on overflow
         for(temp_i = 0; temp_i < 8; temp_i++) {
-            if(keyboard_buf_i < KEYBOARD_BUF_CHAR_MAX && keyboard_buf_i < terminal_buf_n_bytes - 1) {
-                keyboard_buf[keyboard_buf_i] = ' ';
-                keyboard_buf_i++;
-                putc(' ');
+            if(*kb_buf_i < KEYBOARD_BUF_CHAR_MAX && *kb_buf_i < terminal_buf_n_bytes - 1) {
+                kb_buf[*kb_buf_i] = ' ';
+                (*kb_buf_i)++;
+                putc(' ', terminals[visible_terminal]);
             }
             else 
                 break;
@@ -251,11 +256,11 @@ void keyboard_handler() {
                 break;
         }
     }
-
+    
     // Put key pressed in buffer and on screen and advance buffer index
-    keyboard_buf[keyboard_buf_i] = key_pressed;
-    keyboard_buf_i++;        
-    putc(key_pressed);
+    kb_buf[*kb_buf_i] = key_pressed;
+    (*kb_buf_i)++;        
+    putc(key_pressed, terminals[visible_terminal]);
     
     // Send EOI to PIC
     send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard

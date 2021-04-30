@@ -139,7 +139,7 @@ int list_all_files(){
 		for(j=0; j<32; j++){
 			if(dentry.fname[j] == 0)
 				break;
-			putc(dentry.fname[j]);
+			putc(dentry.fname[j], terminals[visible_terminal]);
 		}
 		//printf("%s", (int8_t*)dentry.fname);
 		//printf((uint8_t*)names[i]);
@@ -251,13 +251,13 @@ int test_terminal_keyboard(){
 	char buf[test_term_buf_size];				// Buffer that keyboard_buf should be copied to 
 	terminal_open(NULL);
 	terminal_read(fd, buf, test_term_buf_size);
-	terminal_write(fd, buf, terminals[curr_terminal].term_kb_buf_i);
+	terminal_write(fd, buf, terminals[scheduled_terminal].term_kb_buf_i);
 	// If the buffers up until '\n' are not the same, the copy failed
-	if(strncmp(buf, terminals[curr_terminal].term_kb_buf, terminals[curr_terminal].term_kb_buf_i))
+	if(strncmp(buf, terminals[scheduled_terminal].term_kb_buf, terminals[scheduled_terminal].term_kb_buf_i))
 		return FAIL;
 	terminal_read(fd, buf, test_term_buf_size);
-	terminal_write(fd, buf, terminals[curr_terminal].term_kb_buf_i);
-	if(strncmp(buf, terminals[curr_terminal].term_kb_buf, terminals[curr_terminal].term_kb_buf_i))
+	terminal_write(fd, buf, terminals[scheduled_terminal].term_kb_buf_i);
+	if(strncmp(buf, terminals[scheduled_terminal].term_kb_buf, terminals[scheduled_terminal].term_kb_buf_i))
 		return FAIL;
 	return PASS;
 }

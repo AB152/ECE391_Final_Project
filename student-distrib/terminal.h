@@ -16,25 +16,31 @@ typedef struct{
     int32_t cursor_x;
     int32_t cursor_y;
     int32_t last_assigned_pid;    //keeps track of last assigned pid of the terminal
-    char term_kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
-    volatile int32_t term_kb_buf_i;
-    volatile char term_kb_enter_flag;
+    volatile int32_t kb_buf_i;    // This terminal's keyboard buffer index
+    volatile char kb_enter_flag;
+    char kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
+    uint8_t rtc_freq;                  // RTC frequency for this terminal (virtualization purposes)
 }terminal_t;
 
 
 terminal_t terminals[MAX_TERMINALS];    // Array of terminals to track the 3 running terminals
-int32_t curr_terminal;  // keeps track of which terminal the scheduler is running
+int32_t scheduled_terminal;  // keeps track of which terminal the scheduler is running
 int32_t visible_terminal; // tracks the terminal_id of the currently visible terminal
 
-// Terminal's copy of keyboard_buf before it gets cleared
-//char terminal_buf[KEYBOARD_BUF_SIZE];
+//------------------------VARS DEPRECATED IN CP5------------------------------
 
-// Terminal's copy of keyboard_buf_i before it gets cleared
-//int32_t terminal_buf_i;
+// Terminal's copy of keyboard_buf before it gets cleared (DEPRECATED DUE TO MULTI-TERMINAL)
+//char terminal_buf[KEYBOARD_BUF_SIZE]; 
 
+// Terminal's copy of keyboard_buf_i before it gets cleared (DEPRECATED DUE TO MULTI-TERMINAL)
+//int32_t terminal_buf_i; 
+
+//--------------------------END DEPRECATED VARS-----------------------------
+
+// Initializes multi-terminal
 extern void init_terminal();
 
-// Initalizes terminal
+// Open syscall for terminal
 int32_t terminal_open(int32_t fd);
 
 // Clear terminal specific vars

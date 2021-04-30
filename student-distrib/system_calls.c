@@ -40,7 +40,7 @@ int32_t bad_call(){
  */
 int32_t halt(uint8_t status){
 
-    pcb_t *pcb_ptr =(pcb_t*)terminals[curr_terminal].terminal_pcb;  //initialize to current running terminal's pcb
+    pcb_t *pcb_ptr =(pcb_t*)terminals[scheduled_terminal].terminal_pcb;  //initialize to current running terminal's pcb
 
     //initalize pcb
     int i;
@@ -53,7 +53,7 @@ int32_t halt(uint8_t status){
 
     // Mark PID as free
     processes[pcb_ptr->process_id] = 0;
-    terminals[curr_terminal].last_assigned_pid = pcb_ptr->parent_process_id;
+    terminals[scheduled_terminal].last_assigned_pid = pcb_ptr->parent_process_id;
     
     // Check if we're at base shell and spawn new base shell if so
     if(pcb_ptr->parent_process_id == pcb_ptr->process_id){
@@ -79,7 +79,7 @@ int32_t halt(uint8_t status){
         set_user_video_page(1);
 
     // Terminal's PCB var should track parent process
-    terminals[curr_terminal].terminal_pcb = parent_pcb_ptr;
+    terminals[scheduled_terminal].terminal_pcb = parent_pcb_ptr;
 
     // Check for exceptions and return 256 if so
     int32_t real_status;
@@ -208,7 +208,7 @@ int32_t execute(const uint8_t* command){
     int val = read_data(file_dentry.inode, 0, (uint8_t*)PROG_IMG_ADDR, 100000);
     if(val == -1){
         set_user_prog_page(next_pid, 0);
-        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
+        set_user_prog_page(terminals[scheduled_terminal].last_assigned_pid, 1);
         return -1;
     }
 
@@ -217,22 +217,22 @@ int32_t execute(const uint8_t* command){
     read_data(file_dentry.inode, 0, elf_check, 4);
     if(elf_check[0] != 0x7f){
         set_user_prog_page(next_pid, 0);
-        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
+        set_user_prog_page(terminals[scheduled_terminal].last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[1] != 0x45){
         set_user_prog_page(next_pid, 0);
-        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
+        set_user_prog_page(terminals[scheduled_terminal].last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[2] != 0x4c){
         set_user_prog_page(next_pid, 0);
-        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
+        set_user_prog_page(terminals[scheduled_terminal].last_assigned_pid, 1);
         return -1;
     }
     if(elf_check[3] != 0x46){
         set_user_prog_page(next_pid, 0);
-        set_user_prog_page(terminals[curr_terminal].last_assigned_pid, 1);
+        set_user_prog_page(terminals[scheduled_terminal].last_assigned_pid, 1);
         return -1;
     }
 
@@ -241,13 +241,13 @@ int32_t execute(const uint8_t* command){
         next_pcb_ptr->process_id = next_pid;
     }
     else{
-        next_pcb_ptr->parent_process_id = terminals[curr_terminal].last_assigned_pid;
+        next_pcb_ptr->parent_process_id = terminals[scheduled_terminal].last_assigned_pid;
         next_pcb_ptr->process_id = next_pid;
     }
 
     // Mark PID as in use and set PCB
     processes[next_pid] = 1;
-    terminals[curr_terminal].last_assigned_pid = next_pid;
+    terminals[scheduled_terminal].last_assigned_pid = next_pid;
 
     
     // Initialize vidmap flag
@@ -265,8 +265,8 @@ int32_t execute(const uint8_t* command){
     
     // If we're executing the first base shells for the terminals, the scheduler already got their ESP/EBP
     if(next_pid <= 2){
-        next_pcb_ptr->curr_esp = terminals[curr_terminal].terminal_pcb->curr_esp;
-        next_pcb_ptr->curr_ebp = terminals[curr_terminal].terminal_pcb->curr_ebp;
+        next_pcb_ptr->curr_esp = terminals[scheduled_terminal].terminal_pcb->curr_esp;
+        next_pcb_ptr->curr_ebp = terminals[scheduled_terminal].terminal_pcb->curr_ebp;
     }
     // Otherwise, the scheduler will put the exec's ESP/EBP into the PCB later
     else{
@@ -280,8 +280,8 @@ int32_t execute(const uint8_t* command){
                 : "=r" (next_pcb_ptr->parent_esp), "=r" (next_pcb_ptr->parent_ebp)    // Outputs
     );
 
-    next_pcb_ptr->parent_pcb = terminals[curr_terminal].terminal_pcb; // Save existing PCB as parent
-    terminals[curr_terminal].terminal_pcb = next_pcb_ptr; // Update pcb pointer for current terminal
+    next_pcb_ptr->parent_pcb = terminals[scheduled_terminal].terminal_pcb; // Save existing PCB as parent
+    terminals[scheduled_terminal].terminal_pcb = next_pcb_ptr; // Update pcb pointer for current terminal
     
     // Push items to stack and context switch using IRET
     asm volatile (

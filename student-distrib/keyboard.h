@@ -21,17 +21,21 @@
 #define TERMINAL_TWO            0x3C
 #define TERMINAL_THREE          0x3D
 
-// Line buffer for keyboard entries
-char keyboard_buf[KEYBOARD_BUF_SIZE];
+//------------------------VARS DEPRECATED IN CP5------------------------------ 
 
-// Holds the arg "n_bytes" passed into terminal_read
-int terminal_buf_n_bytes;
+// Line buffer for keyboard entries
+//char keyboard_buf[KEYBOARD_BUF_SIZE]; (IS NOW "kb_buf" IN TERMINAL STRUCT DUE TO MULTI-TERMINAL)
 
 // Keyboard buffer index to keep track of buffer pos
-int keyboard_buf_i;
+//int keyboard_buf_i; (IS NOW "kb_buf_i" IN TERMINAL STRUCT DUE TO MULTI-TERMINAL)
 
 // Tracks if enter was pressed so terminal_read can continue
-//volatile int enter_flag;
+//volatile int enter_flag; (IS NOW "kb_enter_flag" TERMINAL STRUCT DUE TO MULTI-TERMINAL)
+
+//--------------------------END DEPRECATED VARS-----------------------------
+
+// Holds the arg "n_bytes" passed into terminal_read (is this meaningless?)
+int terminal_buf_n_bytes;
 
 // Keyboard flags
 int left_shift_flag;
@@ -47,8 +51,8 @@ int alt_flag;
 // Initialize the keyboard by enabling the PIC IRQ
 void init_keyboard();
 
-// Clear keyboard buffer
-void clear_keyboard_buf();
+// Zeros keyboard buffer, resets enter flag and buffer index
+void clear_keyboard_vars(int32_t terminal_id);
 
 // Handles Keyboard interrupts
 extern void keyboard_handler();

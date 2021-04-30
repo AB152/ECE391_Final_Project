@@ -64,7 +64,7 @@ format_char_switch:
                     switch (*buf) {
                         /* Print a literal '%' character */
                         case '%':
-                            putc('%');
+                            putc('%', terminals[visible_terminal]);
                             break;
 
                         /* Use alternate formatting */
@@ -126,7 +126,7 @@ format_char_switch:
 
                         /* Print a single character */
                         case 'c':
-                            putc((uint8_t) *((int32_t *)esp));
+                            putc((uint8_t) *((int32_t *)esp), terminals[visible_terminal]);
                             esp++;
                             break;
 
@@ -144,7 +144,7 @@ format_char_switch:
                 break;
 
             default:
-                putc(*buf);
+                putc(*buf, terminals[visible_terminal]);
                 break;
         }
         buf++;
@@ -159,7 +159,7 @@ format_char_switch:
 int32_t puts(int8_t* s) {
     register int32_t index = 0;
     while (s[index] != '\0') {
-        putc(s[index]);
+        putc(s[index], terminals[visible_terminal]);
         index++;
     }
     return index;
@@ -239,8 +239,11 @@ void scroll(void){
  * Inputs: uint_8* c = character to print
  * Return Value: void
  *  Function: Output a character to the console */
-void putc(uint8_t c) {
-    
+void putc(uint8_t c, terminal_t curr_terminal) {
+    //initialize the locations on the screen to the respective terminal that is currently running
+    screen_x=curr_terminal.cursor_x;
+    screen_y=curr_terminal.cursor_y;
+
     // Ignore NULL bytes
     if(c == '\0')
         return;
@@ -587,5 +590,5 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     } */
-    putc('1');      // Changed so that a 1 is put to the screen every interrupt
+    putc('1', terminals[visible_terminal]);      // Changed so that a 1 is put to the screen every interrupt
 }
