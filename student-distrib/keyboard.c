@@ -9,6 +9,7 @@
 #include "terminal.h"
 #include "i8259.h"
 
+
 /*
  * init_keyboard
  *    DESCRIPTION: Initializes the keyboard by setting the IDT entry and PIC IRQ
@@ -17,22 +18,6 @@
 void init_keyboard(){
     enable_irq(KEYBOARD_IRQ);
     SET_IDT_ENTRY(idt[0x21], &keyboard_processor);        //index 21 of IDT reserved for keyboard
-}
-
-/*
- * clear_keyboard_buf
- *    DESCRIPTION: Zeros keyboard buffer, resets enter flag and buffer index
- *    INPUTS: terminal_id -- the terminal whose keyboard vars are to be reset   
- */
-void clear_keyboard_vars(int32_t terminal_id) {
-    if(terminal_id < 0 || terminal_id >= MAX_TERMINALS)
-        return;
-    int i;      // Loop index
-    terminals[terminal_id].kb_buf_i = 0;
-    terminals[terminal_id].kb_enter_flag = 0;
-    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        terminals[terminal_id].kb_buf[i] = 0;
-    }
 }
 
 /*
@@ -112,8 +97,7 @@ void keyboard_handler() {
     if(key_pressed == '\b') {
         if(*kb_buf_i > 0) {
             (*kb_buf_i)--;
-            kb_buf[*kb_buf_i] = 0;
-            putc('\b');
+            putc('\b',1);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -124,7 +108,7 @@ void keyboard_handler() {
         kb_buf[*kb_buf_i] = key_pressed;
         (*kb_buf_i)++;
         terminals[visible_terminal].kb_enter_flag = 1;
-        putc('\n');
+        putc('\n',1);
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -173,7 +157,7 @@ void keyboard_handler() {
             if(*kb_buf_i < KEYBOARD_BUF_CHAR_MAX && *kb_buf_i < terminal_buf_n_bytes - 1) {
                 kb_buf[*kb_buf_i] = ' ';
                 (*kb_buf_i)++;
-                putc(' ');
+                putc(' ',1);
             }
             else 
                 break;
@@ -259,8 +243,8 @@ void keyboard_handler() {
     
     // Put key pressed in buffer and on screen and advance buffer index
     kb_buf[*kb_buf_i] = key_pressed;
-    (*kb_buf_i)++;        
-    putc(key_pressed);
+    (*kb_buf_i)++;  
+    putc(key_pressed,1);
     
     // Send EOI to PIC
     send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard

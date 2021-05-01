@@ -139,7 +139,7 @@ int list_all_files(){
 		for(j=0; j<32; j++){
 			if(dentry.fname[j] == 0)
 				break;
-			putc(dentry.fname[j]);
+			putc(dentry.fname[j],0);
 		}
 		//printf("%s", (int8_t*)dentry.fname);
 		//printf((uint8_t*)names[i]);

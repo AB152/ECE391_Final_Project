@@ -47,7 +47,8 @@ void scheduler(){
         execute((uint8_t *)"shell");
     }
 
-    // Save old process's stack (also properly sets up first base shell's ESP/EBP)
+    // Save old process's stack
+    // This properly sets up first base shell's ESP/EBP by forcing it into this context
     asm volatile(       
         "movl %%esp, %0;"
         "movl %%ebp, %1;"
@@ -76,11 +77,9 @@ void scheduler(){
     tss.esp0 = EIGHT_MB - (next_pcb->process_id * EIGHT_KB) - 4;
     tss.ss0 = KERNEL_DS;
 
-    // IMPORTANT: Why tf do we need an STI here? Should we ask a TA?
     asm volatile(       //Switch to next process's stack
         "movl %0, %%esp;"
         "movl %1, %%ebp;"
-        "sti"
         : 
         :"r"(next_pcb->curr_esp), "r"(next_pcb->curr_ebp) // Inputs
         :"esp", "ebp"
