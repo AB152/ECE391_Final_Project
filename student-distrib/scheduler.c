@@ -63,11 +63,9 @@ void scheduler(){
     tss.esp0 = EIGHT_MB - (next_pcb->process_id * EIGHT_KB) - 4;
     tss.ss0 = KERNEL_DS;
 
-    // IMPORTANT: Why tf do we need an STI here? Should we ask a TA?
     asm volatile(       //Switch to next process's stack
         "movl %0, %%esp;"
         "movl %1, %%ebp;"
-        "sti"
         : 
         :"r"(next_pcb->curr_esp), "r"(next_pcb->curr_ebp) // Inputs
         :"esp", "ebp"
