@@ -8,11 +8,11 @@
 #include "rtc.h"
 
 
-int shell_count = 0;
+int shell_count = 0;    //keeps track of initial bootups of all three terminals
 
 /*
  * scheduler
- *    DESCRIPTION: Performs process switching
+ *    DESCRIPTION: Performs process switching and boots up all three terminals
  *    INPUTS: none
  *    OUTPUTS: none
  *    SIDE EFFECTS: Switches active process using round-robin scheduling
@@ -32,10 +32,11 @@ void scheduler(){
         shell_count++;
         terminals[scheduled_terminal].terminal_pcb = &temp_pcb;
         terminals[scheduled_terminal].last_assigned_pid = scheduled_terminal;   //mark terminal as booted and initialize its pid
-
+        
         switch_visible_terminal(scheduled_terminal);    // Switch video page so the bootup text stays in that terminal
+        
         printf("Terminal %d booting...\n", shell_count);
-        execute((uint8_t *)"shell");
+        execute((uint8_t *)"shell");    //initial bootup for all three terminals
     }
 
     // Save old process's stack
@@ -53,7 +54,7 @@ void scheduler(){
     if(terminals[scheduled_terminal].terminal_pcb == NULL)
         return;
     
-    set_user_video_page(1);
+    set_user_video_page(1); //sets up and marks user page for vidmem as present
 
     pcb_t * next_pcb = terminals[scheduled_terminal].terminal_pcb;
 
@@ -69,7 +70,7 @@ void scheduler(){
         "movl %1, %%ebp;"
         : 
         :"r"(next_pcb->curr_esp), "r"(next_pcb->curr_ebp) // Inputs
-        :"esp", "ebp"
+        :"esp", "ebp"   //clobbers esp, ebp
     );
     
 }

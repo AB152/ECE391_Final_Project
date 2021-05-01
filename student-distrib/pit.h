@@ -10,7 +10,7 @@
  */
 
 #define PIT_PORT		    0x70
-#define PIT_IRQ             0x00
+#define PIT_IRQ             0x00        //highest priority on PIC
 #define PIT_CH0             0x40
 #define PIT_MODE_REG        0x43
 //Note: must be as responsive as possible, so we chose min frequency required
