@@ -27,7 +27,10 @@ void init_terminal(){
         terminals[i].cursor_x = 0;
         terminals[i].cursor_y = 0;
         terminals[i].last_assigned_pid = -1;   // flag as no process running
-        terminals[i].rtc_freq = 0;             // Set RTC freq for that terminal to 0Hz (set later by RTC funcs?)
+        terminals[i].rtc_freq = 0;             // Set RTC freq for that terminal to 0Hz (set later by RTC_open and write)
+        terminals[i].rtc_active = 0;
+        terminals[i].rtc_countdown = 0;
+        terminals[i].rtc_virt_interrupt = 0;
         clear_keyboard_vars(i);                 // Initialize each terminal's keyboard buffer 
     }
 }

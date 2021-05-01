@@ -399,11 +399,12 @@ int32_t open(const uint8_t* filename){
     uint32_t file_type = dentry.ftype;
     if(file_type==0){   //ftype 0 for RTC
         pcb->fda[i].fops_table_ptr=rtc_table;
+        (void)RTC_open((uint8_t *)"rtc");
     }
-    else if(file_type==1){   //ftype 1 for directory
+    else if(file_type==1){   //ftype 1 for directory (don't need to call open_dir as it's successful at this point)
         pcb->fda[i].fops_table_ptr=directory_table;
     }
-    else if(file_type==2){   //ftype 2 for regular file
+    else if(file_type==2){   //ftype 2 for regular file (don't need to call open_file as it's successful at this point)
         pcb->fda[i].fops_table_ptr=file_table;
         pcb->fda[i].inode=dentry.inode;
     }

@@ -19,7 +19,7 @@ pit.o: pit.c pit.h lib.h types.h terminal.h keyboard.h asm_linkage.h \
 rtc.o: rtc.c rtc.h lib.h types.h terminal.h keyboard.h asm_linkage.h \
   idt.h x86_desc.h system_calls.h i8259.h
 scheduler.o: scheduler.c scheduler.h system_calls.h types.h terminal.h \
-  keyboard.h i8259.h pit.h lib.h paging.h x86_desc.h
+  keyboard.h i8259.h pit.h lib.h paging.h x86_desc.h rtc.h
 system_calls.o: system_calls.c x86_desc.h types.h system_calls.h paging.h \
   lib.h terminal.h keyboard.h rtc.h file_system.h idt.h
 terminal.o: terminal.c terminal.h keyboard.h types.h lib.h paging.h \

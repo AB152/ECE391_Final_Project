@@ -12,14 +12,20 @@
 
 typedef struct{
     struct pcb* terminal_pcb;
-    int32_t terminal_id;    //keeps track of which terminal we are on
+    int32_t terminal_id;                //keeps track of which terminal we are on
     int32_t cursor_x;
     int32_t cursor_y;
-    int32_t last_assigned_pid;    //keeps track of last assigned pid of the terminal
-    volatile int32_t kb_buf_i;    // This terminal's keyboard buffer index
-    volatile char kb_enter_flag;
-    char kb_buf[KEYBOARD_BUF_SIZE];    // This terminal's keyboard buffer
-    uint8_t rtc_freq;                  // RTC frequency for this terminal (virtualization purposes)
+    int32_t last_assigned_pid;          //keeps track of last assigned pid of the terminal
+
+    volatile int32_t kb_buf_i;          // This terminal's keyboard buffer index
+    volatile char kb_enter_flag;        //flags whether the kb enter key has been used
+    char kb_buf[KEYBOARD_BUF_SIZE];     // This terminal's keyboard buffer
+
+    volatile uint8_t rtc_active;                 // Boolean that denotes if this terminal's process opened the RTC
+    volatile uint8_t rtc_virt_interrupt;         // Flag that denotes that the virtual RTC interrupt has occurred
+    uint32_t rtc_freq;                  // RTC frequency for this terminal (virtualization purposes)
+    uint32_t rtc_countdown;    // Holds number of interrupts which at 1024Hz is equivalent to rtc_freq
+
 }terminal_t;
 
 
