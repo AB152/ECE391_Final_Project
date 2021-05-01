@@ -254,7 +254,7 @@ void putc(uint8_t c, int keyboard_flag) {
     if(visible_terminal != scheduled_terminal) {
         if(!keyboard_flag){
             // Note that we won't update the VGA blinking cursor here as it will spaz out the visible terminal
-            redirect_vidmem_page(scheduled_terminal);
+            redirect_vidmem_page(scheduled_terminal);           //when switching terminals, remap to background buffer
             screen_x = terminals[scheduled_terminal].cursor_x;  //update cursor coordinates
             screen_y = terminals[scheduled_terminal].cursor_y;
         }
@@ -308,7 +308,7 @@ void putc(uint8_t c, int keyboard_flag) {
     // Update background terminal's cursor and restore the visible terminal's cursor and return
     if(visible_terminal != scheduled_terminal) {
         if(!keyboard_flag){
-            redirect_vidmem_page(visible_terminal);            // redirect virt_addr 0xB8000 to point back to itself
+            redirect_vidmem_page(visible_terminal);            // redirect virt_addr 0xB8000 to point back to its virtual address
             terminals[scheduled_terminal].cursor_x = screen_x; // save cursor to scheduled terminal
             terminals[scheduled_terminal].cursor_y = screen_y;
             screen_x = terminals[visible_terminal].cursor_x;  // restore visible cursor coordinates

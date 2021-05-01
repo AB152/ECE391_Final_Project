@@ -23,7 +23,7 @@ void init_terminal(){
     visible_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
         terminals[i].terminal_pcb = NULL;      // will be implemented in scheduler
-        terminals[i].terminal_id = i;
+        terminals[i].terminal_id = i;          //identifies terminal
         terminals[i].cursor_x = 0;
         terminals[i].cursor_y = 0;
         terminals[i].last_assigned_pid = -1;   // flag as no process running
@@ -35,16 +35,19 @@ void init_terminal(){
 /*
  * clear_keyboard_buf
  *    DESCRIPTION: Zeros keyboard buffer, resets enter flag and buffer index
- *    INPUTS: terminal_id -- the terminal whose keyboard vars are to be reset   
+ *    INPUTS: terminal_id -- the terminal whose keyboard vars are to be reset 
+ *    OUTPUTS: none
+ *    RETURN VALUE: none
+ *    SIDE EFFECTS: clears keyboard buffer and resets kb flags and buffer index  
  */
 void clear_keyboard_vars(int32_t terminal_id) {
     if(terminal_id < 0 || terminal_id >= MAX_TERMINALS)
         return;
     int i;      // Loop index
-    terminals[terminal_id].kb_buf_i = 0;
-    terminals[terminal_id].kb_enter_flag = 0;
+    terminals[terminal_id].kb_buf_i = 0;        //set keyboard index to start
+    terminals[terminal_id].kb_enter_flag = 0;   //enter key has not been pressed
     for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
-        terminals[terminal_id].kb_buf[i] = 0;
+        terminals[terminal_id].kb_buf[i] = 0;   //clear keyboard buffer
     }
 }
 
