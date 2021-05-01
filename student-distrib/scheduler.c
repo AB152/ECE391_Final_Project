@@ -7,9 +7,6 @@
 #include "x86_desc.h"
 #include "rtc.h"
 
-
-int shell_count = 0;    //keeps track of initial bootups of all three terminals
-
 /*
  * scheduler
  *    DESCRIPTION: Performs process switching and boots up all three terminals
@@ -32,7 +29,7 @@ void scheduler(){
         shell_count++;
         terminals[scheduled_terminal].terminal_pcb = &temp_pcb;
         terminals[scheduled_terminal].last_assigned_pid = scheduled_terminal;   //mark terminal as booted and initialize its pid
-        
+
         switch_visible_terminal(scheduled_terminal);    // Switch video page so the bootup text stays in that terminal
         
         printf("Terminal %d booting...\n", shell_count);

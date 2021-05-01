@@ -49,6 +49,12 @@ void keyboard_handler() {
     char * kb_buf = terminals[visible_terminal].kb_buf;
     volatile int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
 
+    // Ignore keyboard inputs during multi-terminal bootup
+    if(shell_count < 3) {
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
 
@@ -143,6 +149,12 @@ void keyboard_handler() {
             send_eoi(KEYBOARD_IRQ);
             return;
         }
+    }
+
+    // Ignore any non-printing chars (placed here as we don't want to overlook terminal switcher)
+    if(key_pressed == 0) {
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
 
     // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press

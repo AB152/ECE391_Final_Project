@@ -19,6 +19,7 @@
 void init_terminal(){
     // Find next available terminal ID to assign
     int i; 
+    shell_count = 0;
     scheduled_terminal = 0;
     visible_terminal = 0;
     for(i = 0; i < MAX_TERMINALS; i++) {    
@@ -145,6 +146,12 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
     // Print n_bytes worth of chars
     for(i = 0; i < n_bytes; i++) {
         putc(((char *)(buf))[i], 0);
+    }
+
+    /* Stops the shell prompt from being backspaced if we type before the prompt is printed (like during fish)
+       Prints out the keyboard buffer again if the shell prompt (length 7) is the argument */
+    if(!strncmp((int8_t *)buf, "391OS> ", 7) && shell_count == 3) {
+        terminal_write(NULL, terminals[scheduled_terminal].kb_buf, terminals[scheduled_terminal].kb_buf_i);
     }
 
     return i;

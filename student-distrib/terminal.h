@@ -32,6 +32,7 @@ typedef struct{
 terminal_t terminals[MAX_TERMINALS];    // Array of terminals to track the 3 running terminals
 int32_t scheduled_terminal;  // keeps track of which terminal the scheduler is running
 int32_t visible_terminal; // tracks the terminal_id of the currently visible terminal
+int shell_count;    //keeps track of initial bootups of all three terminals
 
 //------------------------VARS DEPRECATED IN CP5------------------------------
 
