@@ -113,6 +113,11 @@ void keyboard_handler() {
     
     // If enter pressed, print newline, set enter_flag, and return from interrupt (terminal_read will clear buf)
     if(key_pressed == '\n') {
+        // If visible_terminal isn't in terminal_read, pressing enter should do nothing 
+        if(!allow_putc) {
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
         kb_buf[*kb_buf_i] = key_pressed;
         (*kb_buf_i)++;
         terminals[visible_terminal].kb_enter_flag = 1;
