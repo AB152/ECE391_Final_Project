@@ -83,8 +83,11 @@ int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes) {
     // Reset so the keyboard buffer can write to its normal size
     terminal_buf_n_bytes = KEYBOARD_BUF_SIZE;
     enter_flag = 0;
-    command_history_stack_pointer = 0;
     clear_keyboard_buf();
+
+    // Reset command history state
+    command_history_stack_pointer = 0;
+    memset(keyboard_save, '\0', KEYBOARD_BUF_SIZE);
 
     // Return keyboard_buf index, which is the same as the number of bytes read from keyboard_buf including '\n'
     return terminal_buf_i;
@@ -147,14 +150,20 @@ void clear_command_history() {
  *    SIDE EFFECTS: If stack is full, the bottom most entry gets overwritten by the one above it
  *    NOTES: We don't need to strip newlines as the shell already does that before it calls execute. 
  */
-void push_to_command_history(uint8_t* command) {
+void push_to_command_history(const uint8_t* command) {
     int i;
-    // Add to stack by moving existing entries down (hard copy method with redundancies)
+    // Add to stack by moving existing entries down (redundancies possible)
     for(i = COMMAND_HISTORY_SIZE - 1; i > 0; i--) {
         memcpy(command_history_stack[i], command_history_stack[i - 1], KEYBOARD_BUF_SIZE);
     }
-    // Push command to top of stack
-    memcpy(command_history_stack[0], command, strlen((int8_t *)command));
+    // Push command to top of stack using hard copy method
+    uint32_t length = strlen((int8_t *)command);
+    for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
+        if(i < length)
+            command_history_stack[0][i] = command[i];
+        else
+            command_history_stack[0][i] = '\0';
+    }
 }
 
 /*
@@ -167,8 +176,8 @@ void push_to_command_history(uint8_t* command) {
  *    NOTES: Should do nothing unless we're in terminal_read
  */
 void command_history_up_arrow() {
-    // Run only if we're in terminal_read and the next item in stack actually exists
-    if(!allow_arrow_keys || command_history_stack[command_history_stack_pointer][0] == '\0')
+    // Run only if we're in terminal_read, if we aren't out of bounds, and the next item in stack actually exists
+    if(!allow_arrow_keys || command_history_stack_pointer == COMMAND_HISTORY_SIZE || command_history_stack[command_history_stack_pointer][0] == '\0')
         return;
 
     // Save keyboard_buf if we're at the top of the stack (net stack displacement is zero)

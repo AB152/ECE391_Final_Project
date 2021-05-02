@@ -38,7 +38,7 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes);
 void clear_command_history();
 
 // EC: Helper function to push to command_history stack
-void push_to_command_history(uint8_t* command);
+void push_to_command_history(const uint8_t* command);
 
 // EC: Handler for when the up arrow is pressed
 void command_history_up_arrow();

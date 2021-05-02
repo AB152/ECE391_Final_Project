@@ -126,9 +126,6 @@ int32_t execute(const uint8_t* command){
         }
     }
 
-    // EC: Always reset command history stack pointer after shell calls execute
-    command_history_stack_pointer = 0;
-
     // EC: Base shell execution initializes command history stack
     if(next_pid == 0)
         clear_command_history();
