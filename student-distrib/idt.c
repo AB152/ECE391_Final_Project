@@ -92,6 +92,7 @@ void init_IDT(){
     SET_IDT_ENTRY(idt[18], &machine_check);             //exception 18
     SET_IDT_ENTRY(idt[19], &simd_floating_point);       //exception 19
     
+    SET_IDT_ENTRY(idt[0x2C], &mouse_processor); //direct to mouse handler from its IDT entry index
     /*initialize 0x80 index in IDT for system calls, see Appendix B*/
     SET_IDT_ENTRY(idt[0x80], &systems_handler);         
 

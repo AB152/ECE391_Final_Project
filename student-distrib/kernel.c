@@ -168,7 +168,7 @@ void entry(unsigned long magic, unsigned long addr) {
     init_keyboard();
 
     //Initialize Mouse
-    //init_mouse();
+    init_mouse();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
