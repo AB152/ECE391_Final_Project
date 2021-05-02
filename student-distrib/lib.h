@@ -7,6 +7,11 @@
 
 #include "types.h"
 
+#define VIDEO       0xB8000
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+
 int32_t printf(int8_t *format, ...);
 void enable_cursor(void);               // Enables VGA text-mode cursor
 void update_cursor(int x, int y);       // Updates VGA text-mode cursor position

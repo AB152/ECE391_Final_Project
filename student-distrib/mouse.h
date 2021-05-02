@@ -1,7 +1,7 @@
 #ifndef _MOUSE_H
 #define _MOUSE_H
 
-#include "lib.h"
+#include "types.h"
 
 #define MOUSE_PS2_PORT          0x64
 #define MOUSE_DATA              0xD4
@@ -11,6 +11,8 @@
 #define MOUSE_DEFAULT           0xF6
 #define MOUSE_PACKET_STREAMING  0xF4
 #define MOUSE_IRQ               12
+
+#define SCREEN_WIDTH            
 
 typedef struct{
     union {
@@ -51,5 +53,7 @@ uint8_t mouse_read();
 void init_mouse();
 
 void mouse_handler();
+
+void mouse_cursor();
 
 #endif /* _MOUSE */

@@ -124,6 +124,12 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
 }
 
 /*
+* IMPORTANT!!! shell mixes with other command when going through terminal history
+* Might be bc of nested shell
+*/
+
+
+/*
  * clear_command_history (EC)
  *    DESCRIPTION: Re-initializes command history related vars
  *    INPUTS: none
