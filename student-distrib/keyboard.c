@@ -45,9 +45,10 @@ void keyboard_handler() {
 
     int temp_i;   // Temp var used for tab loop index
 
-    // Define alias vars for readability (using visible_terminal as the keyboard types to visible terminal)
+    // Define alias vars for readability (using visible_terminal as the keyboard only types to visible terminal)
     char * kb_buf = terminals[visible_terminal].kb_buf;
     volatile int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
+    char allow_putc = terminals[visible_terminal].in_terminal_read; // Only allow keyboard to putc if in terminal_read
 
     // Ignore keyboard inputs during multi-terminal bootup
     if(shell_count < 3) {
@@ -103,7 +104,8 @@ void keyboard_handler() {
     if(key_pressed == '\b') {
         if(*kb_buf_i > 0) {
             (*kb_buf_i)--;
-            putc('\b',1);
+            if(allow_putc)
+                putc('\b',1);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -114,7 +116,8 @@ void keyboard_handler() {
         kb_buf[*kb_buf_i] = key_pressed;
         (*kb_buf_i)++;
         terminals[visible_terminal].kb_enter_flag = 1;
-        putc('\n',1);
+        if(allow_putc)
+            putc('\n',1);
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -169,7 +172,8 @@ void keyboard_handler() {
             if(*kb_buf_i < KEYBOARD_BUF_CHAR_MAX && *kb_buf_i < terminal_buf_n_bytes - 1) {
                 kb_buf[*kb_buf_i] = ' ';
                 (*kb_buf_i)++;
-                putc(' ',1);
+                if(allow_putc)
+                    putc(' ',1);
             }
             else 
                 break;
@@ -256,7 +260,8 @@ void keyboard_handler() {
     // Put key pressed in buffer and on screen and advance buffer index
     kb_buf[*kb_buf_i] = key_pressed;
     (*kb_buf_i)++;  
-    putc(key_pressed,1);
+    if(allow_putc)
+        putc(key_pressed,1);
     
     // Send EOI to PIC
     send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard

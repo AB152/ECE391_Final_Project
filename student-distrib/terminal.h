@@ -20,6 +20,7 @@ typedef struct{
     volatile int32_t kb_buf_i;          // This terminal's keyboard buffer index
     volatile char kb_enter_flag;        //flags whether the kb enter key has been used
     char kb_buf[KEYBOARD_BUF_SIZE];     // This terminal's keyboard buffer
+    char in_terminal_read;              // flags whether the keyboard_handler is allowed to write to screen
 
     volatile uint8_t rtc_active;                 // Boolean that denotes if this terminal's process opened the RTC
     volatile uint8_t rtc_virt_interrupt;         // Flag that denotes that the virtual RTC interrupt has occurred

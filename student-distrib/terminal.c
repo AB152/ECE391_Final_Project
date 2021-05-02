@@ -32,12 +32,13 @@ void init_terminal(){
         terminals[i].rtc_active = 0;
         terminals[i].rtc_countdown = 0;
         terminals[i].rtc_virt_interrupt = 0;
+        terminals[i].in_terminal_read = 0;
         clear_keyboard_vars(i);                 // Initialize each terminal's keyboard buffer 
     }
 }
 
 /*
- * clear_keyboard_buf
+ * clear_keyboard_vars
  *    DESCRIPTION: Zeros keyboard buffer, resets enter flag and buffer index
  *    INPUTS: terminal_id -- the terminal whose keyboard vars are to be reset 
  *    OUTPUTS: none
@@ -96,9 +97,15 @@ int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes) {
     // Let keyboard know how many bytes the buffer is (is this meaningless?)
     terminal_buf_n_bytes = n_bytes;
 
+    // Set flag to allow keyboard inputs to write to screen
+    terminals[scheduled_terminal].in_terminal_read = 1;
+
     // Block until enter ('\n') has been pressed for the scheduled terminal
     while(!terminals[scheduled_terminal].kb_enter_flag);
 
+    // Clear flag to have keyboard inputs be invisible
+    terminals[scheduled_terminal].in_terminal_read = 0;
+    
     // Alias vars for readability (using scheduled_terminal as we might be in a background process)
     char * kb_buf = terminals[scheduled_terminal].kb_buf;
     volatile int32_t * kb_buf_i = &terminals[scheduled_terminal].kb_buf_i;
@@ -149,6 +156,7 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
     }
 
     /* Stops the shell prompt from being backspaced if we type before the prompt is printed (like during fish)
+       Or, if the user types when the user program isn't expecting keyboard inputs, reveal when we return to shell
        Prints out the keyboard buffer again if the shell prompt (length 7) is the argument */
     if(!strncmp((int8_t *)buf, "391OS> ", 7) && shell_count == 3) {
         terminal_write(NULL, terminals[scheduled_terminal].kb_buf, terminals[scheduled_terminal].kb_buf_i);

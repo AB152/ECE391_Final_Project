@@ -63,11 +63,6 @@ int32_t halt(uint8_t status){
     // restore paging
     set_user_prog_page(pcb_ptr -> parent_process_id, 1);
     
-    /* Close vidmap page if the halting process called it (scheduling will fuck this up)
-    if(pcb_ptr->called_vidmap) {
-        set_user_video_page(0);
-        pcb_ptr->called_vidmap = 0;
-    } */
 
     // Update TSS to return to parent context
     tss.esp0 = EIGHT_MB - (pcb_ptr -> parent_process_id * EIGHT_KB) - 4;    //setting ESP0 to base of new kernel stack

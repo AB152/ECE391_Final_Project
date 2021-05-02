@@ -29,10 +29,10 @@ typedef struct pcb {
     file_descriptor_t fda[8];    //up to 8 open files are represented with a file array in PCB
     uint32_t process_id;
     uint32_t parent_process_id;
-    uint32_t parent_esp;
-    uint32_t parent_ebp;
-    uint32_t curr_esp;
-    uint32_t curr_ebp;
+    uint32_t parent_esp;        // Used to restore parent's ESP when process halts
+    uint32_t parent_ebp;        // Used to restore parent's EBP when process halts
+    uint32_t curr_esp;          // ESP for this process so its not corrupted upon scheduler task switching
+    uint32_t curr_ebp;          // EBP for this process so its not corrupted upon scheduler task switching
     uint8_t called_vidmap;
     int8_t arg[MAX_ARGS];             // holds the arguments passed by the shell cmd 
     struct pcb * parent_pcb;
