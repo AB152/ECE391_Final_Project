@@ -50,12 +50,6 @@ void keyboard_handler() {
     volatile int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
     char allow_putc = terminals[visible_terminal].in_terminal_read; // Only allow keyboard to putc if in terminal_read
 
-    // Ignore keyboard inputs during multi-terminal bootup
-    if(shell_count < 3) {
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
 
