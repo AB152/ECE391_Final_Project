@@ -14,7 +14,7 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 /* Initializes the 8259 PIC */
 void i8259_init(void) {
     // Clear interrupt flag so no interrupts occur during init
-    cli();    
+    //cli();    
 
 
     outb(ICW1, MASTER_8259_PORT);               // ICW1: select 8259A-1 init
@@ -32,7 +32,7 @@ void i8259_init(void) {
 
     enable_irq(2);                              //enable IRQ2 (slave ports), added by Gloria
     // Initialization complete: re-allow interrupts
-    sti();       
+    //sti();       
 }
 
 /* Enable (unmask) the specified IRQ */

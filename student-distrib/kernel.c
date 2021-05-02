@@ -168,9 +168,8 @@ void entry(unsigned long magic, unsigned long addr) {
     // Initialize RTC interrupts
     init_RTC();
 
-    // Initialize Keyboard
-    init_keyboard();
-
+    // KEYBOARD INITIALIZATION MOVED TO BOOT-UP SEQUENCE IN SCHEDULER
+    
     // Initialize PIT
     init_PIT();         //note: pit scheduling algorithm handles terminal bootup
 

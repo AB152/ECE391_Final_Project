@@ -49,12 +49,6 @@ void keyboard_handler() {
     char * kb_buf = terminals[visible_terminal].kb_buf;
     volatile int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
 
-    // Ignore keyboard inputs during multi-terminal bootup
-    if(shell_count < 3) {
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
 

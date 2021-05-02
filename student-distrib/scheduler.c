@@ -6,6 +6,7 @@
 #include "paging.h"
 #include "x86_desc.h"
 #include "rtc.h"
+#include "keyboard.h"
 
 /*
  * scheduler
@@ -32,6 +33,10 @@ void scheduler(){
 
         switch_visible_terminal(scheduled_terminal);    // Switch video page so the bootup text stays in that terminal
         
+        // Enable keyboard IRQ now that all 3 terminals are booted to avoid race condition during bootup
+        if(shell_count == 3)
+            init_keyboard();
+
         printf("Terminal %d booting...\n", shell_count);
         execute((uint8_t *)"shell");    //initial bootup for all three terminals
     }
