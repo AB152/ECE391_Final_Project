@@ -34,6 +34,9 @@
 .globl RTC_processor
 .globl systems_handler
 
+//extra credit
+.globl mouse_processor
+
 /*
 * moving esp into eax is unnecessary
 */
@@ -261,6 +264,12 @@ end_systems_handler:
 systems_jump_table:
     .long invalid_syscall, halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn 
 
-
+mouse_processor:
+    cli 
+    pushal 
+    call mouse_handler
+    popal 
+    sti 
+    iret 
 
 

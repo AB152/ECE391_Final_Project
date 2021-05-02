@@ -35,5 +35,8 @@ extern void keyboard_processor();   //process keyboard interrupt
 extern void RTC_processor();        //process RTC interrupt
 extern void systems_handler();      //process systems call arg
 
+/*Extra Credit*/
+extern void mouse_processor();  //process mouse interrupt
+
 #endif /* ASM */
 #endif /* _ASM_LINKAGE_H */

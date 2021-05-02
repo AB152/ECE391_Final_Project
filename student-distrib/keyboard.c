@@ -75,7 +75,7 @@ void keyboard_handler() {
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
 
-    // Set flags is control character key is pressed
+    // Set flags for when ASCII modifying keys are pressed
     switch(scan_code){
         case LEFT_SHIFT_PRESSED:
             left_shift_flag = 1;
@@ -105,6 +105,22 @@ void keyboard_handler() {
             alt_flag = 0;
             break;
     }
+
+    // EC: Note that keys 2, 4, 6, and 8 on keypad mimick the arrow keys as they use the same scan codes
+    // EC: Up arrow goes down in command_history stack, copies into kb_buf, and prints to screen
+    if(scan_code == UP_ARROW) {
+        command_history_up_arrow();
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
+    // EC: Down arrow goes up in command_history stack, copies into kb_buf, and prints to screen
+    if(scan_code == DOWN_ARROW) {
+        command_history_down_arrow();
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
 
     // Ignore key releases (F1 pressed is 0x3B, any scan codes greater than that are releases)
     if(scan_code >= 0x3B || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||

@@ -124,11 +124,22 @@ int32_t execute(const uint8_t* command){
             next_pid = i;
             break;
         }
-        // If we've reached end without finding a free PID, cannot execute
-        if(i == MAX_PROCESSES - 1)
-            return -1;
     }
-    
+
+    // EC: Always reset command history stack pointer after shell calls execute
+    command_history_stack_pointer = 0;
+
+    // EC: Base shell execution initializes command history stack
+    if(next_pid == 0)
+        clear_command_history();
+
+    // EC: Push input to command history stack if we're not executing base shell (allowing invalid commands)
+    if(next_pid != 0)
+        push_to_command_history(command);
+
+    // If we've reached end without finding a free PID, cannot execute (EC: Moved here due to command history)
+    if(i == MAX_PROCESSES - 1)
+        return -1;
 
     // Allocate PCB
     // Calculate pointer to next PCB

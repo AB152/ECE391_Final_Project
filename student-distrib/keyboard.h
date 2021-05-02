@@ -15,6 +15,8 @@
 #define LEFT_CTRL_RELEASED      0x9D
 #define LEFT_ALT_PRESSED        0x38
 #define LEFT_ALT_RELEASED       0xB8
+#define UP_ARROW                0x48    // Added in EC
+#define DOWN_ARROW              0x50    // Added in EC
 #define KEYBOARD_BUF_SIZE       128
 #define KEYBOARD_BUF_CHAR_MAX   127
 

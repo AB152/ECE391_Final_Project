@@ -15,6 +15,9 @@
 #include "file_system.h"
 #include "system_calls.h"
 
+/*Extra Credit*/
+#include "mouse.h"
+
 #define RUN_TESTS
 
 /* Macros. */
@@ -163,6 +166,9 @@ void entry(unsigned long magic, unsigned long addr) {
 
     // Initialize Keyboard
     init_keyboard();
+
+    //Initialize Mouse
+    //init_mouse();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
