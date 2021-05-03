@@ -177,6 +177,41 @@ void enable_cursor(void) {
 	outb((inb(0x3D5) & 0xE0) | NUM_ROWS, 0x3D5); // Bitmask register to set scan line end at NUM_ROWS
 }
 
+/* void shift_cursor(int)
+ * Inputs: direction -- 1 for right, -1 for left
+ * Return Value: void
+ *    Function: shifts cursor left or right depending on input direction (only used in arrow keys) 
+ *    See link: (https://wiki.osdev.org/Text_Mode_Cursor) */
+void shift_cursor(int direction)
+{
+	int x = screen_x;
+    int y = screen_y;
+    // Case to shift cursor to the right (right arrow)
+    if(direction == 1) {
+        x++;
+        if(x == NUM_COLS) {
+            x = 0;
+            y++;
+        }
+    }
+    // Case to shift cursor to the left (left arrow)
+    else if(direction == -1) {
+        x--;
+        if(x == -1) {
+            x = NUM_COLS - 1;
+            y--;
+        }
+    }
+
+    uint16_t pos = y * NUM_COLS + x;
+ 
+    // Set corresponding VGA register bits to update cursor
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);            // Bitmask and update x-coordinate
+	outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);     // Bitmask and update y-coordinate
+}
+
 /* void update_cursor(int, int)
  * Inputs: (x, y) -- coordinate of screen to move cursor to
  * Return Value: void

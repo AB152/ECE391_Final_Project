@@ -17,6 +17,8 @@
 #define LEFT_ALT_RELEASED       0xB8
 #define UP_ARROW                0x48    // Added in EC
 #define DOWN_ARROW              0x50    // Added in EC
+#define RIGHT_ARROW             0x4D    // Added in EC
+#define LEFT_ARROW              0x4B    // Added in EC
 #define KEYBOARD_BUF_SIZE       128
 #define KEYBOARD_BUF_CHAR_MAX   127
 
@@ -27,7 +29,10 @@ char keyboard_buf[KEYBOARD_BUF_SIZE];
 int terminal_buf_n_bytes;
 
 // Keyboard buffer index to keep track of buffer pos
-int keyboard_buf_i;
+int keyboard_buf_bytes_written;
+
+// Var to keep track of cursor position on the keyboard buffer
+int keyboard_cursor_pos;
 
 // Tracks if enter was pressed so terminal_read can continue
 volatile int enter_flag;

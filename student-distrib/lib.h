@@ -14,6 +14,7 @@
 
 int32_t printf(int8_t *format, ...);
 void enable_cursor(void);               // Enables VGA text-mode cursor
+void shift_cursor(int direction);
 void update_cursor(int x, int y);       // Updates VGA text-mode cursor position
 void scroll(void);                      // Scroll each line on screen up by one line
 void putc(uint8_t c);

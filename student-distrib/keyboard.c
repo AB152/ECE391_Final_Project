@@ -29,7 +29,8 @@ void init_keyboard(){
  */
 void clear_keyboard_buf() {
     int i;      // Loop index
-    keyboard_buf_i = 0;
+    keyboard_buf_bytes_written = 0;
+    keyboard_cursor_pos = 0;
     for(i = 0; i < KEYBOARD_BUF_SIZE; i++) {
         keyboard_buf[i] = 0;
     }
@@ -45,18 +46,6 @@ void keyboard_handler() {
     // Scan code + 0x80 is that key but released/"de-pressed"
     // ASCII + 0x20 is the lower case of that letter
     
-    // int scan_code_to_ascii[] = {
-    // 0, 27, 49, 50, 51, 52, 53, 54, 55, 56,
-    // 57, 48, 45, 61, 8, 9, 113, 119, 101, 114,
-    // 116, 121, 117, 105, 111, 112, 91, 93, 10, 0,
-    // 97, 115, 100, 102, 103, 104, 106, 107, 108, 59,
-    // 39, 96, 0, 92, 122, 120, 99, 118, 98, 110,
-    // 109, 44, 46, 47, 0, 42, 0, 32, 0, 0
-    // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    // 0, 55, 56, 57, 45, 52, 53, 54, 43, 49,
-    // 50, 51, 48, 46, 0, 0, 0, 0, 0
-    // };
-
     // Index is the scan code, the value at an index is that scan code key's ASCII
     int scan_code_to_ascii[] = {
     0, 0x1B, '1', '2', '3', '4', '5', '6', '7', '8',
@@ -121,6 +110,27 @@ void keyboard_handler() {
         return;
     }
 
+    // EC: Left arrow moves stdin stream cursor to the left
+    if(scan_code == LEFT_ARROW) {
+        // Only move cursor to the left if it already isn't at the start of the stream
+        if(keyboard_cursor_pos > 0) {
+            keyboard_cursor_pos--;
+            shift_cursor(-1);
+        }
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
+    // EC: Right arrow moves stdin stream cursor to the right
+    if(scan_code == RIGHT_ARROW) {
+        // Only move cursor to the right if the cursor isn't already at the end of the stream
+        if(keyboard_cursor_pos < keyboard_buf_bytes_written) {
+            keyboard_cursor_pos++;
+            shift_cursor(1);
+        }
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
 
     // Ignore key releases (F1 pressed is 0x3B, any scan codes greater than that are releases)
     if(scan_code >= 0x3B || scan_code == LEFT_SHIFT_PRESSED || scan_code == RIGHT_SHIFT_PRESSED || scan_code == CAPS_LOCK_PRESSED ||
@@ -134,9 +144,9 @@ void keyboard_handler() {
 
     // Backspace pressed: delete last char if buffer isn't empty, then return from interrupt
     if(key_pressed == '\b') {
-        if(keyboard_buf_i > 0) {
-            keyboard_buf_i--;
-            keyboard_buf[keyboard_buf_i] = 0;
+        if(keyboard_buf_bytes_written > 0) {
+            keyboard_cursor_pos--;
+            keyboard_buf[keyboard_cursor_pos] = 0;
             putc('\b');
         }
         send_eoi(KEYBOARD_IRQ);
@@ -145,8 +155,8 @@ void keyboard_handler() {
     
     // If enter pressed, print newline, set enter_flag for terminal, mark buf for clear, and return from interrupt
     if(key_pressed == '\n') {
-        keyboard_buf[keyboard_buf_i] = key_pressed;
-        keyboard_buf_i++;
+        keyboard_buf[keyboard_buf_bytes_written] = key_pressed;
+        keyboard_buf_bytes_written++;
         enter_flag = 1;
         putc('\n');
         send_eoi(KEYBOARD_IRQ);
@@ -156,13 +166,7 @@ void keyboard_handler() {
     // Ctrl + l and Ctrl + L clears screen and prints keyboard buffer again
     if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
         clear();
-        terminal_write(NULL, keyboard_buf, keyboard_buf_i);
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
-
-    // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press
-    if(keyboard_buf_i == KEYBOARD_BUF_CHAR_MAX || keyboard_buf_i == terminal_buf_n_bytes - 1) {
+        terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -170,6 +174,20 @@ void keyboard_handler() {
     if(alt_flag) {
         // Case for alt flag
     }
+    
+    // Don't print non-printing keys
+    if(key_pressed == 0) {
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
+    // If entering a char will overflow either buffer (only buf_size-1 chars + '\n' allowed), ignore the key press
+    if(keyboard_buf_bytes_written == KEYBOARD_BUF_CHAR_MAX || keyboard_buf_bytes_written == terminal_buf_n_bytes - 1) {
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
+    
 
     /* IMPORTANT */
     // Ask TA if tab with less than 8 spaces left in buffer continues tab on next line
@@ -177,9 +195,9 @@ void keyboard_handler() {
     if(key_pressed == '\t') {
         // Tab = 8 spaces, but clip if overflow
         for(temp_i = 0; temp_i < 8; temp_i++) {
-            if(keyboard_buf_i < KEYBOARD_BUF_CHAR_MAX && keyboard_buf_i < terminal_buf_n_bytes - 1) {
-                keyboard_buf[keyboard_buf_i] = ' ';
-                keyboard_buf_i++;
+            if(keyboard_buf_bytes_written < KEYBOARD_BUF_CHAR_MAX && keyboard_buf_bytes_written < terminal_buf_n_bytes - 1) {
+                keyboard_buf[keyboard_buf_bytes_written] = ' ';
+                keyboard_buf_bytes_written++;
                 putc(' ');
             }
             else 
@@ -265,8 +283,8 @@ void keyboard_handler() {
     }
 
     // Put key pressed in buffer and on screen and advance buffer index
-    keyboard_buf[keyboard_buf_i] = key_pressed;
-    keyboard_buf_i++;        
+    keyboard_buf[keyboard_buf_bytes_written] = key_pressed;
+    keyboard_buf_bytes_written++;        
     putc(key_pressed);
     
     // Send EOI to PIC

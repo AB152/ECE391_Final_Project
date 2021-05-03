@@ -67,7 +67,7 @@ int32_t terminal_read(int32_t fd, void * buf, int32_t n_bytes) {
     (void)strncpy((int8_t *)terminal_buf, (int8_t *)keyboard_buf, n_bytes);
 
     // Copy count of chars written from keyboard
-    terminal_buf_i = keyboard_buf_i;
+    terminal_buf_i = keyboard_buf_bytes_written;
 
     // Strip any extraneous chars after '\n' due to race cond in issue #18's reopen
     if(terminal_buf_i > 0) { 
@@ -117,7 +117,7 @@ int32_t terminal_write(int32_t fd, const void * buf, int32_t n_bytes) {
     /* Stops the shell prompt from being backspaced if we type before the prompt is printed (like during fish)
        Prints out the keyboard buffer again if the shell prompt (length 7) is the argument */
     if(!strncmp((int8_t *)buf, "391OS> ", 7)) {
-        terminal_write(NULL, keyboard_buf, keyboard_buf_i);
+        terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
     }
 
     return i;
@@ -189,23 +189,23 @@ void command_history_up_arrow() {
     // Save keyboard_buf if we're at the top of the stack (net stack displacement is zero)
     if(command_history_stack_pointer == 0) {
         memcpy(keyboard_save, keyboard_buf, KEYBOARD_BUF_SIZE);
-        keyboard_save_i = keyboard_buf_i;
+        keyboard_save_i = keyboard_buf_bytes_written;
     }
     
     int i;  // Loop index to clear stdin stream in terminal video mem
     
     // Clear stdin stream in video memory
-    for(i = keyboard_buf_i; i > 0; i--) {
+    for(i = keyboard_buf_bytes_written; i > 0; i--) {
         putc('\b');
     }
     
     // Copy over item currently pointed to in stack into keyboard buffer
     uint8_t * next_item = command_history_stack[command_history_stack_pointer];
     memcpy(keyboard_buf, next_item, KEYBOARD_BUF_SIZE);
-    keyboard_buf_i = (int)strlen((int8_t *)next_item);
+    keyboard_buf_bytes_written = (int)strlen((int8_t *)next_item);
 
     // Write the history's command to the screen
-    terminal_write(NULL, keyboard_buf, keyboard_buf_i);
+    terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
 
     // Increment stack pointer
     command_history_stack_pointer++;
@@ -235,16 +235,16 @@ void command_history_down_arrow() {
         // Restore from saver 
         memcpy(keyboard_buf, keyboard_save, KEYBOARD_BUF_SIZE);
         // Clear stdin stream in video memory
-        for(i = keyboard_buf_i; i > 0; i--) {
+        for(i = keyboard_buf_bytes_written; i > 0; i--) {
             putc('\b');
         }
         // Write the saved buffer to the screen
-        terminal_write(NULL, keyboard_buf, keyboard_buf_i);
+        terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
         return;
     }
 
     // Clear stdin stream in video memory
-    for(i = keyboard_buf_i; i > 0; i--) {
+    for(i = keyboard_buf_bytes_written; i > 0; i--) {
         putc('\b');
     }
 
@@ -254,8 +254,8 @@ void command_history_down_arrow() {
     // Copy over item currently pointed to in stack to keyboard buffer
     uint8_t * next_item = command_history_stack[command_history_stack_pointer];
     memcpy(keyboard_buf, next_item, KEYBOARD_BUF_SIZE);
-    keyboard_buf_i = (int)strlen((int8_t *)next_item); 
+    keyboard_buf_bytes_written = (int)strlen((int8_t *)next_item); 
 
     // Write the history's command to the screen
-    terminal_write(NULL, keyboard_buf, keyboard_buf_i);
+    terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
 }
