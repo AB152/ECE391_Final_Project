@@ -48,7 +48,7 @@ void keyboard_handler() {
     // Define alias vars for readability (using visible_terminal as the keyboard only types to visible terminal)
     char * kb_buf = terminals[visible_terminal].kb_buf;
     volatile int32_t * kb_buf_i = &terminals[visible_terminal].kb_buf_i;
-    char allow_putc = terminals[visible_terminal].in_terminal_read; // Only allow keyboard to putc if in terminal_read
+    char print_allowed = terminals[visible_terminal].in_terminal_read; // Only allow keyboard to putc if in terminal_read
 
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
@@ -98,7 +98,7 @@ void keyboard_handler() {
     if(key_pressed == '\b') {
         if(*kb_buf_i > 0) {
             (*kb_buf_i)--;
-            if(allow_putc)
+            if(print_allowed)
                 putc('\b',1);
         }
         send_eoi(KEYBOARD_IRQ);
@@ -108,14 +108,14 @@ void keyboard_handler() {
     // If enter pressed, print newline, set enter_flag, and return from interrupt (terminal_read will clear buf)
     if(key_pressed == '\n') {
         // If visible_terminal isn't in terminal_read, pressing enter should do nothing 
-        if(!allow_putc) {
+        if(!print_allowed) {
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         kb_buf[*kb_buf_i] = key_pressed;
         (*kb_buf_i)++;
         terminals[visible_terminal].kb_enter_flag = 1;
-        if(allow_putc)
+        if(print_allowed)
             putc('\n',1);
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -124,7 +124,7 @@ void keyboard_handler() {
     // Ctrl + l and Ctrl + L clears screen and prints keyboard buffer again
     if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
         clear();
-        if(allow_putc)
+        if(print_allowed)
             terminal_write(NULL, kb_buf, *kb_buf_i);
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -172,7 +172,7 @@ void keyboard_handler() {
             if(*kb_buf_i < KEYBOARD_BUF_CHAR_MAX && *kb_buf_i < terminal_buf_n_bytes - 1) {
                 kb_buf[*kb_buf_i] = ' ';
                 (*kb_buf_i)++;
-                if(allow_putc)
+                if(print_allowed)
                     putc(' ',1);
             }
             else 
@@ -260,7 +260,7 @@ void keyboard_handler() {
     // Put key pressed in buffer and on screen and advance buffer index
     kb_buf[*kb_buf_i] = key_pressed;
     (*kb_buf_i)++;  
-    if(allow_putc)
+    if(print_allowed)
         putc(key_pressed,1);
     
     // Send EOI to PIC
