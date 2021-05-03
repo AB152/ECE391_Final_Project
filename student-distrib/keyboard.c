@@ -59,7 +59,7 @@ void keyboard_handler() {
     '2', '3', '0', '.', 0, 0, 0, 0, 0
     };
 
-    int temp_i;   // Temp var used for any misc loop index
+    int temp_i;   // Var used for any loop index
 
     // Get scan code from keyboard
     int scan_code = inb(KEYBOARD_PORT);
@@ -95,7 +95,7 @@ void keyboard_handler() {
             break;
     }
 
-    // EC: Note that keys 2, 4, 6, and 8 on keypad mimick the arrow keys as they use the same scan codes
+    // EC: Keypad keys 2, 4, 6, and 8 now act as arrow keys as they use the same scan codes
     // EC: Up arrow goes down in command_history stack, copies into kb_buf, and prints to screen
     if(scan_code == UP_ARROW) {
         command_history_up_arrow();
@@ -144,10 +144,24 @@ void keyboard_handler() {
 
     // Backspace pressed: delete last char if buffer isn't empty, then return from interrupt
     if(key_pressed == '\b') {
-        if(keyboard_buf_bytes_written > 0) {
+        if(keyboard_buf_bytes_written > 0 && keyboard_cursor_pos > 0) {
+            // Clear current stdin stream in video memory
+            for(temp_i = keyboard_buf_bytes_written; temp_i > 0; temp_i--) {
+                putc('\b');
+            }
             keyboard_cursor_pos--;
             keyboard_buf[keyboard_cursor_pos] = 0;
-            putc('\b');
+            // If the cursor isn't at the end of the buffer, shift all entries at and to the right of the cursor
+            if(keyboard_cursor_pos < keyboard_buf_bytes_written) {
+                for(temp_i = keyboard_cursor_pos; temp_i < KEYBOARD_BUF_CHAR_MAX; temp_i++) {
+                    keyboard_buf[temp_i] = keyboard_buf[temp_i + 1];
+                }
+            }
+            keyboard_buf_bytes_written--;
+            // Redraw keyboard buffer
+            for(temp_i = 0; temp_i < keyboard_buf_bytes_written; temp_i++) {
+                putc((uint8_t)keyboard_buf[temp_i]);
+            }
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -188,20 +202,30 @@ void keyboard_handler() {
     }
 
     
-
-    /* IMPORTANT */
-    // Ask TA if tab with less than 8 spaces left in buffer continues tab on next line
-    // Also ask TA if we need to process multiple letters pressed at same time
+    // Tab = 8 spaces, but clip if overflow
     if(key_pressed == '\t') {
-        // Tab = 8 spaces, but clip if overflow
+        // Clear current stdin stream in video memory
+        for(temp_i = keyboard_buf_bytes_written; temp_i > 0; temp_i--) {
+            putc('\b');
+        }
         for(temp_i = 0; temp_i < 8; temp_i++) {
             if(keyboard_buf_bytes_written < KEYBOARD_BUF_CHAR_MAX && keyboard_buf_bytes_written < terminal_buf_n_bytes - 1) {
-                keyboard_buf[keyboard_buf_bytes_written] = ' ';
+                // If the cursor isn't at the end of the buffer, shift all entries at and to the right of the cursor
+                if(keyboard_cursor_pos < keyboard_buf_bytes_written) {
+                    for(temp_i = KEYBOARD_BUF_CHAR_MAX - 1; temp_i > keyboard_cursor_pos; temp_i--) {
+                        keyboard_buf[temp_i] = keyboard_buf[temp_i - 1];
+                    }
+                }
+                keyboard_buf[keyboard_cursor_pos] = ' ';
+                keyboard_cursor_pos++;
                 keyboard_buf_bytes_written++;
-                putc(' ');
             }
             else 
                 break;
+        }
+        // Redraw keyboard buffer
+        for(temp_i = 0; temp_i < keyboard_buf_bytes_written; temp_i++) {
+            putc((uint8_t)keyboard_buf[temp_i]);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -281,12 +305,29 @@ void keyboard_handler() {
                 break;
         }
     }
+    
+    // If the cursor isn't at the end of the buffer, shift all entries at and to the right of the cursor
+    if(keyboard_cursor_pos < keyboard_buf_bytes_written) {
+        for(temp_i = KEYBOARD_BUF_CHAR_MAX - 1; temp_i > keyboard_cursor_pos; temp_i--) {
+            keyboard_buf[temp_i] = keyboard_buf[temp_i - 1];
+        }
+    }
+
+    // Clear current stdin stream in video memory
+    for(temp_i = keyboard_buf_bytes_written; temp_i > 0; temp_i--) {
+        putc('\b');
+    }
 
     // Put key pressed in buffer and on screen and advance buffer index
-    keyboard_buf[keyboard_buf_bytes_written] = key_pressed;
+    keyboard_buf[keyboard_cursor_pos] = key_pressed;
+    keyboard_cursor_pos++;
     keyboard_buf_bytes_written++;        
-    putc(key_pressed);
     
+    // Redraw keyboard buffer
+    for(temp_i = 0; temp_i < keyboard_buf_bytes_written; temp_i++) {
+        putc((uint8_t)keyboard_buf[temp_i]);
+    }
+
     // Send EOI to PIC
     send_eoi(KEYBOARD_IRQ);         // 0x01 is IRQ number for keyboard
 }

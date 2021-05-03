@@ -7,6 +7,8 @@
 
 static int screen_x;
 static int screen_y;
+static int cursor_x;
+static int cursor_y;
 static char* video_mem = (char *)VIDEO;
 
 /* void clear(void);
@@ -21,6 +23,8 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    cursor_x = 0;
+    cursor_y = 0;
 }
 
 /* Standard printf().
@@ -184,26 +188,27 @@ void enable_cursor(void) {
  *    See link: (https://wiki.osdev.org/Text_Mode_Cursor) */
 void shift_cursor(int direction)
 {
-	int x = screen_x;
-    int y = screen_y;
     // Case to shift cursor to the right (right arrow)
     if(direction == 1) {
-        x++;
-        if(x == NUM_COLS) {
-            x = 0;
-            y++;
+        cursor_x++;
+        if(cursor_x == NUM_COLS) {
+            cursor_x = 0;
+            cursor_y++;
         }
     }
     // Case to shift cursor to the left (left arrow)
     else if(direction == -1) {
-        x--;
-        if(x == -1) {
-            x = NUM_COLS - 1;
-            y--;
+        cursor_x--;
+        if(cursor_x == -1) {
+            cursor_x = NUM_COLS - 1;
+            cursor_y--;
         }
     }
+    // If bad input, do nothing
+    else
+        return;
 
-    uint16_t pos = y * NUM_COLS + x;
+    uint16_t pos = cursor_y * NUM_COLS + cursor_x;
  
     // Set corresponding VGA register bits to update cursor
 	outb(0x0F, 0x3D4);
@@ -259,12 +264,16 @@ void putc(uint8_t c) {
     
     if(c == '\n' || c == '\r') {
         screen_y++;
+        cursor_y++;
         screen_x = 0;
+        cursor_x = 0;
         // If newline is entered while screen is filled, scroll up by one line
         if(screen_y == NUM_ROWS) {
             scroll();
             screen_y = NUM_ROWS - 1;
         }
+        if(cursor_y == NUM_ROWS)
+            cursor_y = NUM_ROWS - 1;
     } 
     
     // Backspace case to delete previous char 
@@ -275,11 +284,17 @@ void putc(uint8_t c) {
         
         // Set coordinates to previous index
         screen_x--;
-        
+        cursor_x--;
+
         // Go back to previous line (screen_y) if needed
         if(screen_x == -1) {
             screen_x = NUM_COLS - 1;
             screen_y--;
+        }
+
+        if(cursor_x == -1) {
+            cursor_x = NUM_COLS - 1;
+            cursor_y--;
         }
 
         // Blank out previous char in vidmem
@@ -291,18 +306,26 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+        cursor_x++;
         if (screen_x == NUM_COLS) {
             screen_x = 0;
             screen_y++;
         }
+        if(cursor_x == NUM_COLS) {
+            cursor_x = 0;
+            cursor_y++;
+        }
+
         // If screen gets filled after char gets printed, scroll up by one line
         if(screen_y == NUM_ROWS) {
             scroll();
             screen_y = NUM_ROWS - 1;
-        } 
+        }
+        if(cursor_y == NUM_ROWS)
+            cursor_y = NUM_ROWS - 1; 
     }
     // Update cursor position (might be more efficient to only do this after a whole buffer is printed)
-    update_cursor(screen_x, screen_y);
+    update_cursor(cursor_x, cursor_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

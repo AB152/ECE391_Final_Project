@@ -203,9 +203,12 @@ void command_history_up_arrow() {
     uint8_t * next_item = command_history_stack[command_history_stack_pointer];
     memcpy(keyboard_buf, next_item, KEYBOARD_BUF_SIZE);
     keyboard_buf_bytes_written = (int)strlen((int8_t *)next_item);
+    keyboard_cursor_pos = keyboard_buf_bytes_written;
 
-    // Write the history's command to the screen
-    terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
+    // Write the history's command to the screen by redrawing the new keyboard_buf (could use printf but oh well)
+    for(i = 0; i < keyboard_buf_bytes_written; i++) {
+        putc((uint8_t)keyboard_buf[i]);
+    }
 
     // Increment stack pointer
     command_history_stack_pointer++;
@@ -255,7 +258,10 @@ void command_history_down_arrow() {
     uint8_t * next_item = command_history_stack[command_history_stack_pointer];
     memcpy(keyboard_buf, next_item, KEYBOARD_BUF_SIZE);
     keyboard_buf_bytes_written = (int)strlen((int8_t *)next_item); 
+    keyboard_cursor_pos = keyboard_buf_bytes_written;
 
-    // Write the history's command to the screen
-    terminal_write(NULL, keyboard_buf, keyboard_buf_bytes_written);
+    // Write the history's command to the screen by redrawing the new keyboard_buf (could use printf but oh well)
+    for(i = 0; i < keyboard_buf_bytes_written; i++) {
+        putc((uint8_t)keyboard_buf[i]);
+    }
 }
