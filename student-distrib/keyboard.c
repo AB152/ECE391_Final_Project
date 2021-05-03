@@ -124,8 +124,11 @@ void keyboard_handler() {
     // Ctrl + l and Ctrl + L clears screen and prints keyboard buffer again
     if(ctrl_flag && (key_pressed == 'l' || key_pressed == 'L')) {
         clear();
-        if(print_allowed)
-            terminal_write(NULL, kb_buf, *kb_buf_i);
+        if(print_allowed) {
+            for(temp_i = 0; temp_i < *kb_buf_i; temp_i++) {
+                putc((uint8_t)kb_buf[temp_i], 1);
+            }
+        }
         send_eoi(KEYBOARD_IRQ);
         return;
     }
