@@ -4,6 +4,7 @@
 
 #include "terminal.h"
 #include "lib.h"
+#include "rtc.h"
 
 int allow_arrow_keys = 0;
 
@@ -264,4 +265,23 @@ void command_history_down_arrow() {
     for(i = 0; i < keyboard_buf_bytes_written; i++) {
         putc((uint8_t)keyboard_buf[i]);
     }
+}
+
+void bootup_splash_screen() {
+    int i;
+    // Open RTC to 2Hz
+    RTC_open(NULL);
+    // Print ASCII art
+    printf(" __                   _             \n");
+    printf("|_  __ __ _  __   |_|/ \\|_|         \n");
+    printf("|__ |  | (_) |      |\\_/  |         \n");
+    printf(" _  __                __            \n");
+    printf("/ \\(_    |\\| _ _|_   |_  _    __  _|\n");
+    printf("\\_/__)   | |(_) |_   |  (_)|_|| |(_|\n");
+    printf("Created by: Akshay, Franklin, Gloria, and Vish\n");
+    // Wait 1 second before proceeding
+    for(i = 0; i < 4; i++) {
+        RTC_read(NULL, NULL, NULL);
+    }
+    print_current_time();
 }

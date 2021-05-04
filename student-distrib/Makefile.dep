@@ -8,7 +8,7 @@ idt.o: idt.c idt.h lib.h types.h x86_desc.h asm_linkage.h keyboard.h \
   rtc.h system_calls.h i8259.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   tests.h idt.h rtc.h keyboard.h paging.h file_system.h system_calls.h \
-  mouse.h
+  terminal.h mouse.h
 keyboard.o: keyboard.c keyboard.h lib.h types.h asm_linkage.h idt.h \
   x86_desc.h rtc.h system_calls.h terminal.h i8259.h
 lib.o: lib.c lib.h types.h
@@ -19,6 +19,6 @@ rtc.o: rtc.c rtc.h lib.h types.h asm_linkage.h idt.h x86_desc.h \
   keyboard.h system_calls.h i8259.h
 system_calls.o: system_calls.c x86_desc.h types.h system_calls.h paging.h \
   lib.h rtc.h file_system.h terminal.h keyboard.h idt.h
-terminal.o: terminal.c terminal.h keyboard.h types.h lib.h
+terminal.o: terminal.c terminal.h keyboard.h types.h lib.h rtc.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h file_system.h \
   terminal.h keyboard.h paging.h system_calls.h

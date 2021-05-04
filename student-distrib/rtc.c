@@ -22,7 +22,7 @@ unsigned char freq_list[10] = {0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08, 0
  */ 
 void init_RTC() {
 
-    cli();                              // important that no interrupts happen (perform a CLI)
+    //cli();                              // important that no interrupts happen (perform a CLI)
     outb(DISABLE_NMI_B, RTC_PORT);		// select register B, and disable NMI
     uint32_t prev = inb(CMOS_PORT);	        // read the current value of register B
     outb(DISABLE_NMI_B, RTC_PORT);		// set the index again (a read will reset the index to register D)
@@ -30,7 +30,7 @@ void init_RTC() {
     enable_irq(RTC_IRQ);
     SET_IDT_ENTRY(idt[0x28], &RTC_processor);             //index 28 of IDT reserved for RTC
     RTC_int = 0;                // Clear RTC flag
-    sti();                      // (perform an STI) and reenable NMI if you wish? 
+    //sti();                      // (perform an STI) and reenable NMI if you wish? 
 
 }
 
@@ -173,4 +173,75 @@ int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes) {
  */
 int32_t RTC_close(int32_t fd) {
     return 0;
+}
+
+// EC: Prints the current CMOS time (Credit to: https://wiki.osdev.org/CMOS)
+void print_current_time() {
+    unsigned char second, minute, hour, day, month;
+    unsigned char prev_second = 0, prev_minute = 0, prev_hour = 0, prev_day = 0, prev_month = 0;
+    unsigned int year;  // The year register only holds a value from 0-99, will not be using century register
+    unsigned int prev_year = 0;
+    unsigned char register_B_val;
+    
+    // Read registers until RTC/CMOS is consistent
+    while(get_update_in_progress_flag()) {
+        second = get_RTC_register(0x00);
+        minute = get_RTC_register(0x02);
+        hour = get_RTC_register(0x04);
+        day = get_RTC_register(0x07);
+        month = get_RTC_register(0x08);
+        year = get_RTC_register(0x09);
+    }
+
+    do {
+        prev_second = second;
+        prev_minute = minute;
+        prev_hour = hour;
+        prev_day = day;
+        prev_month = month;
+        prev_year = year;
+        while(get_update_in_progress_flag()) {
+            second = get_RTC_register(0x00);
+            minute = get_RTC_register(0x02);
+            hour = get_RTC_register(0x04);
+            day = get_RTC_register(0x07);
+            month = get_RTC_register(0x08);
+            year = get_RTC_register(0x09);
+        }
+    } while(prev_second != second || prev_minute != minute || prev_hour != hour || prev_day != day
+            || prev_month != month || prev_year != year);
+
+    register_B_val = get_RTC_register(REGISTER_B);
+
+    // Convert BCD to binary values if necessary
+    if(!(register_B_val & 0x04)) {
+        second = (second & 0x0F) + ((second / 16) * 10);
+        minute = (minute & 0x0F) + ((minute / 16) * 10);
+        hour = ((hour & 0x0F) + (((hour & 0x70) / 16) * 10)) | (hour & 0x80);
+        day = (day & 0x0F) + ((day / 16) * 10);
+        month = (month & 0x0F) + ((month / 16) * 10);
+        year = (year & 0x0F) + ((year / 16) * 10);
+    }
+
+    // Convert 12-hr clock to 24-hr clock if necessary
+    if(!(register_B_val & 0x02) && (hour & 0x80))
+        hour = ((hour & 0x7F) + 12) % 24;
+
+    // Add century offset to year register to get current year
+    year += 2000;
+
+    // Print current time string
+    printf("Current time: %d/%d/%d %d:%d:%d\n", month, day, year, hour, minute, second);
+}
+
+// EC: Helper functions for getting current time from CMOS (Credit to: https://wiki.osdev.org/CMOS)
+int get_update_in_progress_flag() {
+      outb(0x0A, RTC_PORT);
+      return (inb(CMOS_PORT) & 0x80);
+}
+
+// EC: Helper functions for getting current time from CMOS (Credit to: https://wiki.osdev.org/CMOS) 
+unsigned char get_RTC_register(int reg) {
+      outb(reg, RTC_PORT);
+      return inb(CMOS_PORT);
 }

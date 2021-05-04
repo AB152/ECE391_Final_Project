@@ -44,4 +44,13 @@ int32_t RTC_write(int32_t fd, const void * buf, int32_t n_bytes);
 // Probably does nothing until we virtualize RTC
 int32_t RTC_close(int32_t fd);
 
+// EC: Prints the current CMOS time
+void print_current_time();
+
+// EC: Helper functions for getting current time from CMOS (Credit to: https://wiki.osdev.org/CMOS)
+int get_update_in_progress_flag();
+
+// EC: Helper functions for getting current time from CMOS (Credit to: https://wiki.osdev.org/CMOS) 
+unsigned char get_RTC_register(int reg);
+
 #endif /* _RTC_H */

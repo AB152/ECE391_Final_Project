@@ -46,4 +46,7 @@ void command_history_up_arrow();
 // EC: Handler for when the down arrow is pressed
 void command_history_down_arrow();
 
+// EC: Prints the bootup splash screen
+void bootup_splash_screen();
+
 #endif /* _TERMINAL_H */
