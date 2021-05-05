@@ -268,7 +268,9 @@ void command_history_down_arrow() {
 }
 
 void bootup_splash_screen() {
-    int i;
+    int i,j;
+    static char* video_mem = (char *)VIDEO;
+
     // Open RTC to 2Hz
     RTC_open(NULL);
     // Print ASCII art
@@ -277,8 +279,10 @@ void bootup_splash_screen() {
     printf("|__ |  | (_) |      |\\_/  |         \n");
     printf(" _  __                __            \n");
     printf("/ \\(_    |\\| _ _|_   |_  _    __  _|\n");
-    printf("\\_/__)   | |(_) |_   |  (_)|_|| |(_|\n");
+    printf("\\_/__)   | |(_) |_   |  (_)|_|| |(_|\n\n");
     printf("Created by: Akshay, Franklin, Gloria, and Vish\n");
+
+    
     // Wait 2 seconds before proceeding
     for(i = 0; i < 4; i++) {
         RTC_read(NULL, NULL, NULL);

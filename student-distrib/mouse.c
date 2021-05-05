@@ -81,7 +81,7 @@ void mouse_handler(){
     send_eoi(MOUSE_IRQ);
 }
 int previous=0;
-static uint8_t temp='F';
+static uint8_t temp=' ';
 
 
 void mouse_cursor(){
@@ -99,12 +99,13 @@ void mouse_cursor(){
         mouse_y=24;
     
     int coordinates = (mouse_y*80) + mouse_x;
-    
+    //char temp2=*(uint8_t*)(video_mem + (coordinates << 1));
+
     *(uint8_t*)(video_mem + (previous << 1))=temp;
     *(uint8_t*)(video_mem + (previous << 1)+1)=ATTRIB;
     temp=*(uint8_t*)(video_mem + (coordinates << 1));
-    *(uint8_t*)(video_mem + (coordinates << 1)) = '#';
-    *(uint8_t*)(video_mem + (coordinates << 1)+1) = 0xA;
+    *(uint8_t*)(video_mem + (coordinates << 1)) = ' ';
+    *(uint8_t*)(video_mem + (coordinates << 1)+1) = 0xA7;
 
     previous=coordinates;
     
