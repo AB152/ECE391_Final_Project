@@ -8,7 +8,7 @@
 #include "keyboard.h"
 #include "types.h"
 
-#define COMMAND_HISTORY_SIZE 10
+#define COMMAND_HISTORY_SIZE 20
 
 // Terminal's copy of keyboard_buf before it gets cleared
 char terminal_buf[KEYBOARD_BUF_SIZE];
@@ -45,5 +45,8 @@ void command_history_up_arrow();
 
 // EC: Handler for when the down arrow is pressed
 void command_history_down_arrow();
+
+// EC: Prints the bootup splash screen
+void bootup_splash_screen();
 
 #endif /* _TERMINAL_H */

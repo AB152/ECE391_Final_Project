@@ -116,6 +116,16 @@ int32_t execute(const uint8_t* command){
         return -1;
     }
 
+    // LMAO lazy method of getting date to execute on shell (not allowing leading spaces)
+    if(!strncmp("date", (int8_t *)command, 4)) {
+        // If command was exact or there is a trailing space, allow it and "execute", otherwise return -1
+        if(strlen((int8_t *)command) == 4 || command[4] == ' ') {
+            print_current_time();
+            return 0;
+        }
+        return -1;
+    }
+    
     // Find next available PID to assign
     int i, next_pid; 
     for(i = 0; i < MAX_PROCESSES; i++) {    //find next available process index
