@@ -15,6 +15,7 @@
 #include "file_system.h"
 #include "system_calls.h"
 #include "pit.h"
+#include "terminal.h"
 
 /*Extra Credit*/
 #include "mouse.h"
@@ -185,6 +186,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Run tests */
     //launch_tests();
 #endif
+    clear();
+    bootup_splash_screen();
     /* Execute the first program ("shell") ... */
     execute((uint8_t *)"shell");
 

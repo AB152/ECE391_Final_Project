@@ -75,14 +75,20 @@ void mouse_handler(){
     }
     mouse_x=mouse.val[1];       //store mouse x movement in global variable
     mouse_y=mouse.val[2];       //store mouse y movement in global variable
-    printf("Mouse x: %d\n", mouse_x);
-    printf("Mouse y: %d\n", mouse_y);
+    // printf("Mouse x: %d\n", mouse_x);
+    // printf("Mouse y: %d\n", mouse_y);
     mouse_cursor();
     send_eoi(MOUSE_IRQ);
 }
+int previous=0;
+static uint8_t temp=' ';
+
 
 void mouse_cursor(){
     static char* video_mem = (char *)VIDEO;
+    // double actual_x=mouse_x;
+    // double actual_y=mouse_y;
+    
     if(mouse_x<0)
         mouse_x=0;
     if(mouse_y<0)
@@ -92,7 +98,17 @@ void mouse_cursor(){
     if(mouse_y>=25)
         mouse_y=24;
     
-    *(uint8_t*)(video_mem + ((NUM_COLS * mouse_y + mouse_x)<<1)) = '^';
+    int coordinates = (mouse_y*80) + mouse_x;
+    //char temp2=*(uint8_t*)(video_mem + (coordinates << 1));
+
+    *(uint8_t*)(video_mem + (previous << 1))=temp;
+    *(uint8_t*)(video_mem + (previous << 1)+1)=ATTRIB;
+    temp=*(uint8_t*)(video_mem + (coordinates << 1));
+    *(uint8_t*)(video_mem + (coordinates << 1)) = ' ';
+    *(uint8_t*)(video_mem + (coordinates << 1)+1) = 0xA7;
+
+    previous=coordinates;
+    
 }
 
 
