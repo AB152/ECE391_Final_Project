@@ -34,6 +34,7 @@ extern void simd_floating_point();  //exception 19
 extern void keyboard_processor();   //process keyboard interrupt
 extern void RTC_processor();        //process RTC interrupt
 extern void systems_handler();      //process systems call arg
+extern void PIT_processor();
 
 /*Extra Credit*/
 extern void mouse_processor();  //process mouse interrupt

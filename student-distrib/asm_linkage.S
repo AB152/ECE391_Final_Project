@@ -32,10 +32,12 @@
 .globl simd_floating_point
 .globl keyboard_processor
 .globl RTC_processor
+.globl PIT_processor
 .globl systems_handler
 
 //extra credit
 .globl mouse_processor
+
 
 /*
 * moving esp into eax is unnecessary
@@ -218,7 +220,15 @@ RTC_processor:                  #once RTC interrupt occurs, call RTC_interrupt h
     call RTC_interrupt
     popal
     sti 
-    iret 
+    iret
+
+PIT_processor:
+    cli 
+    pushal 
+    call PIT_handler
+    popal 
+    sti 
+
 
 /*implementing assembly linkage for system calls*/
 systems_handler:

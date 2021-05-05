@@ -14,6 +14,7 @@
 #include "paging.h"
 #include "file_system.h"
 #include "system_calls.h"
+#include "pit.h"
 
 /*Extra Credit*/
 #include "mouse.h"
@@ -169,6 +170,9 @@ void entry(unsigned long magic, unsigned long addr) {
 
     //Initialize Mouse
     init_mouse();
+
+    // Initialize PIT
+    init_PIT();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
