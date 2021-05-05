@@ -279,7 +279,7 @@ void bootup_splash_screen() {
     printf("/ \\(_    |\\| _ _|_   |_  _    __  _|\n");
     printf("\\_/__)   | |(_) |_   |  (_)|_|| |(_|\n");
     printf("Created by: Akshay, Franklin, Gloria, and Vish\n");
-    // Wait 1 second before proceeding
+    // Wait 2 seconds before proceeding
     for(i = 0; i < 4; i++) {
         RTC_read(NULL, NULL, NULL);
     }
