@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-static void play_sound(uint32_t nFrequence);
+void play_sound(uint32_t nFrequence);
 
 void nosound();
 

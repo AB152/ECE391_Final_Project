@@ -268,9 +268,8 @@ void command_history_down_arrow() {
 }
 
 void bootup_splash_screen() {
-    int i,j;
-    static char* video_mem = (char *)VIDEO;
-
+    int i;
+    
     // Open RTC to 2Hz
     RTC_open(NULL);
     // Print ASCII art

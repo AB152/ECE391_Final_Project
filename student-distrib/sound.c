@@ -6,7 +6,7 @@
 #include "rtc.h"
 
  //Play sound using built in speaker
- static void play_sound(uint32_t nFrequence) {
+ void play_sound(uint32_t nFrequence) {
  	uint32_t Div;
  	uint8_t tmp;
  
@@ -36,7 +36,7 @@
 	play_sound(1000);
 	int i;
 	RTC_open(NULL);
-	for(i = 0; i < 2000; i++) { // wait 2 secs
+	for(i = 0; i < 4; i++) { // wait 2 secs
 		RTC_read(NULL, NULL, NULL);
 	}
 	nosound();

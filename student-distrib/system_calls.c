@@ -6,6 +6,7 @@
 #include "file_system.h"
 #include "terminal.h"
 #include "idt.h"
+#include "sound.h"
 
 /*fops tables for different types*/
 fops_jump_table_t rtc_table = {RTC_read, RTC_write, RTC_open, RTC_close};
@@ -126,6 +127,16 @@ int32_t execute(const uint8_t* command){
         return -1;
     }
     
+    // LMAO lazy method of getting beep/audio to execute on shell (not allowing leading spaces)
+    if(!strncmp("beep", (int8_t *)command, 4)) {
+        // If command was exact or there is a trailing space, allow it and "execute", otherwise return -1
+        if(strlen((int8_t *)command) == 4 || command[4] == ' ') {
+            beep();
+            return 0;
+        }
+        return -1;
+    }
+
     // Find next available PID to assign
     int i, next_pid; 
     for(i = 0; i < MAX_PROCESSES; i++) {    //find next available process index

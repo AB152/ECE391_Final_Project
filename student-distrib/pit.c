@@ -37,5 +37,5 @@ void init_PIT(){
  */ 
 void PIT_handler(){
     send_eoi(PIT_IRQ);  //supplemental session included this before calling scheduler helper
-    beep();
+    //beep();
 }
