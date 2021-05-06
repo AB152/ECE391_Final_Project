@@ -122,6 +122,7 @@ int32_t execute(const uint8_t* command){
         // If command was exact or there is a trailing space, allow it and "execute", otherwise return -1
         if(strlen((int8_t *)command) == 4 || command[4] == ' ') {
             print_current_time();
+            push_to_command_history(command);
             return 0;
         }
         return -1;
@@ -132,6 +133,7 @@ int32_t execute(const uint8_t* command){
         // If command was exact or there is a trailing space, allow it and "execute", otherwise return -1
         if(strlen((int8_t *)command) == 4 || command[4] == ' ') {
             beep();
+            push_to_command_history(command);
             return 0;
         }
         return -1;
